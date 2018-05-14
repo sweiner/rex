@@ -1,0 +1,48 @@
+"use strict";
+// @TODO - add more robust processing on routes
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const requirement_1 = require("../models/requirement");
+const body_parser_1 = __importDefault(require("body-parser"));
+// Assign router to the express.Router() instance
+const router = express_1.Router();
+const jsonParser = body_parser_1.default.json();
+// The / here corresponds to the route that the welcome controller
+// is mounted on in the server.ts file
+// In this case it's /welcome
+router.get('/', (req, res) => {
+    //Create an async request to obtain all of the requirements
+    let promise = requirement_1.Requirement.find();
+    promise.then((requirements) => {
+        res.json(requirements);
+    });
+});
+router.get('/:id', (req, res) => {
+    // Extract the name from the request parameters
+    let { id } = req.params;
+    // Create an async request to find a particular requirement by reqid
+    let promise = requirement_1.Requirement.findOne({ id: id });
+    promise.then((requirement) => {
+        res.json(requirement);
+    });
+});
+router.post('/', jsonParser, (req, res) => {
+    if (!req.body) {
+        return res.sendStatus(400);
+    }
+    requirement_1.Requirement.findOne({ id: req.body.id }, (err, requirement) => {
+        if (err || requirement) {
+            return res.sendStatus(400);
+        }
+        // @TODO add validation on JSON
+        let promise = requirement_1.Requirement.create({ id: req.body.id, data: req.body.data });
+        promise.then((requirement) => {
+            res.json(requirement);
+        });
+    });
+});
+// Export the express.Router() instance to be used by server.ts
+exports.RequirementsController = router;

@@ -6,3 +6,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /* app/controllers/index.ts */
 __export(require("./welcome.controller"));
 __export(require("./users.controller"));
+__export(require("./requirements.controller"));

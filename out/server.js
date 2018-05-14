@@ -13,7 +13,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // Import everything from express and assign it to the express variable
 const express_1 = __importDefault(require("express"));
-const body_parser_1 = __importDefault(require("body-parser"));
 const db = __importStar(require("./db"));
 // Import WelcomeController from controllers entry point
 const controllers_1 = require("./controllers");
@@ -30,7 +29,6 @@ function normalizePort(val) {
 }
 // Create a new express application instance
 const app = express_1.default();
-const bp = body_parser_1.default();
 // The port the express app will listen on
 const port = normalizePort(process.env.PORT || 3000);
 // Connect to Mongo
@@ -39,6 +37,7 @@ db.connect();
 //app.use(bodyParser.json());
 app.use('/welcome', controllers_1.WelcomeController);
 app.use('/users', controllers_2.UsersController);
+app.use('/requirements', controllers_1.RequirementsController);
 // Serve the application at the given port
 app.listen(port, () => {
     // Success callback
