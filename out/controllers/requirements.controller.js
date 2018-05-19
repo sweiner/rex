@@ -37,12 +37,13 @@ router.get('/browse/:id', (req, res) => {
         return res.json(err);
     });
 });
-router.post('/add', jsonParser, (req, res) => {
+router.post('/add/:id', jsonParser, (req, res) => {
+    let { id } = req.params;
     if (!req.body) {
         return res.sendStatus(400);
     }
     // @TODO add validation on JSON
-    let promise = requirement_1.Requirement.create({ id: req.body.id, data: req.body.data });
+    let promise = requirement_1.Requirement.create({ id: id, data: req.body.data });
     promise.then((requirement) => {
         res.json(requirement);
     });

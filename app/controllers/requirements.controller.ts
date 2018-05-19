@@ -16,7 +16,8 @@ router.get('/browse', (req: Request, res: Response) => {
 
     //Create an async request to obtain all of the requirements
     let promise = Requirement.find();
-    promise.then( (requirements) => {
+
+    promise.then((requirements) => {
         res.json(requirements);
     });
 
@@ -32,6 +33,7 @@ router.get('/browse/:id', (req: Request, res: Response) => {
 
     // Create an async request to find a particular requirement by reqid
     let promise = Requirement.findOne({id: id});
+
     promise.then( (requirement) => {
         res.json(requirement);
     });
@@ -42,14 +44,15 @@ router.get('/browse/:id', (req: Request, res: Response) => {
     });
 });
 
-router.post('/add', jsonParser, (req: Request, res: Response) => {
-
+router.post('/add/:id', jsonParser, (req: Request, res: Response) => {
+    let { id } = req.params;
     if (!req.body) {
         return res.sendStatus(400)
     }
 
     // @TODO add validation on JSON
-    let promise = Requirement.create({id: req.body.id, data: req.body.data});
+    let promise = Requirement.create({id: id, data: req.body.data});
+
     promise.then((requirement) => {
         res.json(requirement);
     });
