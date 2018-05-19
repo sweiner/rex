@@ -13,14 +13,18 @@ const jsonParser = body_parser_1.default.json();
 // The / here corresponds to the route that the welcome controller
 // is mounted on in the server.ts file
 // In this case it's /welcome
-router.get('/', (req, res) => {
+router.get('/browse', (req, res) => {
     //Create an async request to obtain all of the requirements
     let promise = requirement_1.Requirement.find();
     promise.then((requirements) => {
         res.json(requirements);
     });
+    promise.catch((reason) => {
+        let err = { 'error': reason };
+        return res.json(err);
+    });
 });
-router.get('/:id', (req, res) => {
+router.get('/browse/:id', (req, res) => {
     // Extract the name from the request parameters
     let { id } = req.params;
     // Create an async request to find a particular requirement by reqid
@@ -28,20 +32,23 @@ router.get('/:id', (req, res) => {
     promise.then((requirement) => {
         res.json(requirement);
     });
+    promise.catch((reason) => {
+        let err = { 'error': reason };
+        return res.json(err);
+    });
 });
-router.post('/', jsonParser, (req, res) => {
+router.post('/add', jsonParser, (req, res) => {
     if (!req.body) {
         return res.sendStatus(400);
     }
-    requirement_1.Requirement.findOne({ id: req.body.id }, (err, requirement) => {
-        if (err || requirement) {
-            return res.sendStatus(400);
-        }
-        // @TODO add validation on JSON
-        let promise = requirement_1.Requirement.create({ id: req.body.id, data: req.body.data });
-        promise.then((requirement) => {
-            res.json(requirement);
-        });
+    // @TODO add validation on JSON
+    let promise = requirement_1.Requirement.create({ id: req.body.id, data: req.body.data });
+    promise.then((requirement) => {
+        res.json(requirement);
+    });
+    promise.catch((reason) => {
+        let err = { 'error': reason };
+        return res.json(err);
     });
 });
 // Export the express.Router() instance to be used by server.ts

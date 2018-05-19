@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+//@TODO this needs to be parameterized
 const dbURI = 'mongodb://localhost/rex';
 
 // Create the database connection

@@ -12,16 +12,21 @@ const jsonParser: NextHandleFunction = bodyParser.json()
 // The / here corresponds to the route that the welcome controller
 // is mounted on in the server.ts file
 // In this case it's /welcome
-router.get('/', (req: Request, res: Response) => {
+router.get('/browse', (req: Request, res: Response) => {
 
     //Create an async request to obtain all of the requirements
     let promise = Requirement.find();
     promise.then( (requirements) => {
         res.json(requirements);
     });
+
+    promise.catch((reason) => {
+        let err = {'error': reason}
+        return res.json(err);
+    });
 });
 
-router.get('/:id', (req: Request, res: Response) => {
+router.get('/browse/:id', (req: Request, res: Response) => {
     // Extract the name from the request parameters
     let { id } = req.params;
 
@@ -30,24 +35,28 @@ router.get('/:id', (req: Request, res: Response) => {
     promise.then( (requirement) => {
         res.json(requirement);
     });
+
+    promise.catch((reason) => {
+        let err = {'error': reason}
+        return res.json(err);
+    });
 });
 
-router.post('/', jsonParser, (req: Request, res: Response) => {
+router.post('/add', jsonParser, (req: Request, res: Response) => {
 
     if (!req.body) {
         return res.sendStatus(400)
     }
 
-    Requirement.findOne({id: req.body.id}, (err, requirement) => {
-        if (err || requirement) {
-            return res.sendStatus(400);
-        }
+    // @TODO add validation on JSON
+    let promise = Requirement.create({id: req.body.id, data: req.body.data});
+    promise.then((requirement) => {
+        res.json(requirement);
+    });
 
-        // @TODO add validation on JSON
-        let promise = Requirement.create({id: req.body.id, data: req.body.data});
-        promise.then((requirement) => {
-            res.json(requirement);
-        });
+    promise.catch((reason) => {
+        let err = {'error': reason}
+        return res.json(err);
     });
 });
 

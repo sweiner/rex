@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
+//@TODO this needs to be parameterized
 const dbURI = 'mongodb://localhost/rex';
 // Create the database connection
 function connect() {

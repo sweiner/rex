@@ -12,7 +12,7 @@ interface IRequirementModel extends IRequirement, Document {
 }
 
 const RequirementSchema: Schema = new Schema({
-    id: String,
+    id: { type: String, index: {unique: true, dropDups:true } },
     data: Schema.Types.Mixed,
     history: HistorySchema
 });
