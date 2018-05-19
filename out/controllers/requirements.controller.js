@@ -51,5 +51,20 @@ router.post('/add', jsonParser, (req, res) => {
         return res.json(err);
     });
 });
+router.post('/edit/:id', jsonParser, (req, res) => {
+    let { id } = req.params;
+    let query = { 'id': id };
+    if (!req.body) {
+        return res.sendStatus(400);
+    }
+    let promise = requirement_1.Requirement.findOneAndUpdate(query, { data: req.body.data }, { new: true });
+    promise.then((doc) => {
+        return res.json(doc);
+    });
+    promise.catch((reason) => {
+        let err = { 'error': reason };
+        return res.json(err);
+    });
+});
 // Export the express.Router() instance to be used by server.ts
 exports.RequirementsController = router;
