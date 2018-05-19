@@ -7,7 +7,7 @@ interface IHistoryModel extends IHistoryItems, Document {
 }
 */
 exports.HistorySchema = new mongoose_1.Schema({
-    history: [{ op: String, path: String, value: String }]
+    history: [{ version: String, log: String, op: String, path: String, value: String }]
 });
 /*
 @TODO - Need to add a function to re-construct the history from a set of diffs

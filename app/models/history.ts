@@ -1,6 +1,8 @@
 import { Document, Schema, Model, model } from 'mongoose';
 
 interface IHistoryItem {
+    version?: number;
+    log?: string;
     op?: string;
     path?: string;
     value?: string;
@@ -15,7 +17,7 @@ interface IHistoryModel extends IHistoryItems, Document {
 */
 
 export const HistorySchema: Schema = new Schema({
-    history: [{op: String, path: String, value: String}]
+    history: [{version: String, log: String, op: String, path: String, value: String}]
 });
 
 /*
