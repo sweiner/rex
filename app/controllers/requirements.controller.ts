@@ -1,7 +1,7 @@
 // @TODO - add more robust processing on routes
 
-import {Router, Request, Response} from 'express';
-import {Requirement} from '../models/requirement';
+import { Router, Request, Response } from 'express';
+import { Requirement } from '../models/requirement';
 import { NextHandleFunction } from 'connect';
 import bodyParser from 'body-parser';
 
@@ -9,19 +9,18 @@ import bodyParser from 'body-parser';
 const router: Router = Router();
 const jsonParser: NextHandleFunction = bodyParser.json() 
 
-// The / here corresponds to the route that the welcome controller
-// is mounted on in the server.ts file
-// In this case it's /welcome
+
+// @TODO modify the global browse to be efficient
 router.get('/browse', (req: Request, res: Response) => {
 
     //Create an async request to obtain all of the requirements
     let promise = Requirement.find();
 
     promise.then((requirements) => {
-        res.json(requirements);
-    });
+        return res.json(requirements);
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });
@@ -35,16 +34,16 @@ router.get('/browse/:id', (req: Request, res: Response) => {
     let promise = Requirement.findOne({id: id});
 
     promise.then((requirement) => {
-        res.json(requirement);
-    });
+        return res.json(requirement);
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });
 });
 
-router.post('/add/:id', jsonParser, (req: Request, res: Response) => {
+router.post('/create/:id', jsonParser, (req: Request, res: Response) => {
     let { id } = req.params;
     if (!req.body) {
         return res.sendStatus(400)
@@ -54,11 +53,11 @@ router.post('/add/:id', jsonParser, (req: Request, res: Response) => {
     let promise = Requirement.create({id: id, data: req.body.data, deleted: false});
 
     promise.then((requirement) => {
-        res.json(requirement);
-    });
-
-    promise.catch((reason) => {
-        let err = {'error': reason}
+        return res.json(requirement);
+    })
+    
+    .catch((reason) => {
+        let err = {'error': reason};
         return res.json(err);
     });
 });
@@ -75,9 +74,9 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
 
     promise.then((doc) => {
         return res.json(doc);
-    });
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });
@@ -90,9 +89,9 @@ router.post('/delete', (req: Request, res: Response) => {
 
     promise.then((doc) => {
         return res.json(doc);
-    });
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });
@@ -106,9 +105,9 @@ router.post('/delete/:id', (req: Request, res: Response) => {
 
     promise.then((doc) => {
         return res.json(doc);
-    });
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });
@@ -122,9 +121,9 @@ router.post('/restore/:id', (req: Request, res: Response) => {
 
     promise.then((doc) => {
         return res.json(doc);
-    });
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });
@@ -136,9 +135,9 @@ router.post('/purge', (req: Request, res: Response) => {
 
     promise.then((doc) => {
         return res.json(doc);
-    });
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });
@@ -152,9 +151,9 @@ router.post('/purge/:id', (req: Request, res: Response) => {
 
     promise.then((doc) => {
         return res.json(doc);
-    });
+    })
 
-    promise.catch((reason) => {
+    .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);
     });

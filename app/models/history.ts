@@ -1,28 +1,39 @@
 import { Document, Schema, Model, model } from 'mongoose';
+import { Operation } from 'rfc6902/diff';
+import { IRequirementModel } from './requirement';
+import * as rfc from 'rfc6902';
 
-interface IHistoryItem {
+export interface IHistoryItem {
     version?: number;
     log?: string;
-    op?: string;
-    path?: string;
-    value?: string;
+    patch?: Operation[];
 }
 
-export interface IHistoryItems extends Array<IHistoryItem>{}
-
-/*
-interface IHistoryModel extends IHistoryItems, Document {
-
+interface IHistoryInfo {
+    current_doc?: Document;
 }
-*/
 
-export const HistorySchema: Schema = new Schema({
-    history: [{version: String, log: String, op: String, path: String, value: String}]
-});
+export const HistorySchema: Schema = new Schema(
+    {
+        log: String, 
+        patch: [Schema.Types.Mixed] 
+    }, 
+    {
+        _id:false,id:false
+    });
 
-/*
-@TODO - Need to add a function to re-construct the history from a set of diffs
-*/
+export function update_history(curr: IRequirementModel, prev: IRequirementModel | null):Promise<IHistoryItem> {
+    let new_item: IHistoryItem;
+
+    if (prev === null) {
+        new_item = { patch: rfc.createPatch(curr.get('data'),[]) };
+    }
+    else {
+        new_item = { patch: rfc.createPatch(curr.get('data'), prev.get('data')) };
+    }
+    
+    return Promise.resolve(new_item);
+}
 
 //Don't need the History model, just the schema for use in the Requirement model. 
 //export const History: Model<IHistoryModel> = model<IHistoryModel>("History", HistorySchema);

@@ -10,16 +10,14 @@ const body_parser_1 = __importDefault(require("body-parser"));
 // Assign router to the express.Router() instance
 const router = express_1.Router();
 const jsonParser = body_parser_1.default.json();
-// The / here corresponds to the route that the welcome controller
-// is mounted on in the server.ts file
-// In this case it's /welcome
+// @TODO modify the global browse to be efficient
 router.get('/browse', (req, res) => {
     //Create an async request to obtain all of the requirements
     let promise = requirement_1.Requirement.find();
     promise.then((requirements) => {
-        res.json(requirements);
-    });
-    promise.catch((reason) => {
+        return res.json(requirements);
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
@@ -30,14 +28,14 @@ router.get('/browse/:id', (req, res) => {
     // Create an async request to find a particular requirement by reqid
     let promise = requirement_1.Requirement.findOne({ id: id });
     promise.then((requirement) => {
-        res.json(requirement);
-    });
-    promise.catch((reason) => {
+        return res.json(requirement);
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
 });
-router.post('/add/:id', jsonParser, (req, res) => {
+router.post('/create/:id', jsonParser, (req, res) => {
     let { id } = req.params;
     if (!req.body) {
         return res.sendStatus(400);
@@ -45,9 +43,9 @@ router.post('/add/:id', jsonParser, (req, res) => {
     // @TODO add validation on JSON
     let promise = requirement_1.Requirement.create({ id: id, data: req.body.data, deleted: false });
     promise.then((requirement) => {
-        res.json(requirement);
-    });
-    promise.catch((reason) => {
+        return res.json(requirement);
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
@@ -61,8 +59,8 @@ router.post('/edit/:id', jsonParser, (req, res) => {
     let promise = requirement_1.Requirement.findOneAndUpdate(query, { data: req.body.data }, { new: true });
     promise.then((doc) => {
         return res.json(doc);
-    });
-    promise.catch((reason) => {
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
@@ -73,8 +71,8 @@ router.post('/delete', (req, res) => {
     let promise = requirement_1.Requirement.updateMany(query, { deleted: true });
     promise.then((doc) => {
         return res.json(doc);
-    });
-    promise.catch((reason) => {
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
@@ -85,8 +83,8 @@ router.post('/delete/:id', (req, res) => {
     let promise = requirement_1.Requirement.findOneAndUpdate(query, { deleted: true }, { new: true });
     promise.then((doc) => {
         return res.json(doc);
-    });
-    promise.catch((reason) => {
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
@@ -97,8 +95,8 @@ router.post('/restore/:id', (req, res) => {
     let promise = requirement_1.Requirement.findOneAndUpdate(query, { deleted: false }, { new: true });
     promise.then((doc) => {
         return res.json(doc);
-    });
-    promise.catch((reason) => {
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
@@ -108,8 +106,8 @@ router.post('/purge', (req, res) => {
     let promise = requirement_1.Requirement.remove(query);
     promise.then((doc) => {
         return res.json(doc);
-    });
-    promise.catch((reason) => {
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
@@ -120,8 +118,8 @@ router.post('/purge/:id', (req, res) => {
     let promise = requirement_1.Requirement.findOneAndRemove(query);
     promise.then((doc) => {
         return res.json(doc);
-    });
-    promise.catch((reason) => {
+    })
+        .catch((reason) => {
         let err = { 'error': reason };
         return res.json(err);
     });
