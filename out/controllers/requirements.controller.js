@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const requirement_1 = require("../models/requirement");
@@ -69,7 +69,6 @@ router.post('/edit/:id', jsonParser, (req, res) => {
         doc.data = req.body.data;
         return doc;
     })
-        // Then save the new requirement
         .then((doc) => {
         doc.save();
         return res.json(doc);

@@ -30,16 +30,56 @@ function normalizePort(val) {
 // Create a new express application instance
 const app = express_1.default();
 // The port the express app will listen on
-const port = normalizePort(process.env.PORT || 3000);
-// Connect to Mongo
-db.connect();
-// Mount the WelcomeController at the /welcome route
-//app.use(bodyParser.json());
-app.use('/welcome', controllers_1.WelcomeController);
-app.use('/users', controllers_2.UsersController);
-app.use('/requirements', controllers_1.RequirementsController);
-// Serve the application at the given port
-app.listen(port, () => {
-    // Success callback
-    console.log(`Listening at http://localhost:${port}/`);
-});
+exports.port = normalizePort(process.env.PORT || 3000);
+// Variable to hold the server for programmatic testing
+let server = null;
+// List of active connections for graceful server shutdown
+let connections = [];
+// Export server creation for use in testing
+function startServer(database) {
+    // Connect to Mongo
+    db.connect(database)
+        .catch((reason) => {
+        console.error('ERROR: Could not connect to MongoDB... Aborting');
+        process.exit(1);
+    });
+    // Mount the WelcomeController at the /welcome route
+    //app.use(bodyParser.json());
+    app.use('/welcome', controllers_1.WelcomeController);
+    app.use('/users', controllers_2.UsersController);
+    app.use('/requirements', controllers_1.RequirementsController);
+    // Serve the application at the given port
+    server = app.listen(exports.port, () => {
+        // Success callback
+        console.log(`Listening at http://localhost:${exports.port}/`);
+    });
+    server.on('connection', connection => {
+        connections.push(connection);
+        connection.on('close', () => connections = connections.filter(curr => curr !== connection));
+    });
+}
+exports.startServer = startServer;
+function stopServer() {
+    if (server) {
+        console.log('Received kill signal, shutting down gracefully');
+        console.log('Disconnecting from MongoDB...');
+        db.disconnect();
+        server.close(() => {
+            console.log('Closed out remaining connections');
+            process.exit(0);
+        });
+        setTimeout(() => {
+            console.error('Could not close connections in time, forcefully shutting down');
+            process.exit(1);
+        }, 10000);
+        connections.forEach(curr => curr.end());
+        setTimeout(() => connections.forEach(curr => curr.destroy()), 5000);
+    }
+}
+exports.stopServer = stopServer;
+process.on('SIGTERM', stopServer);
+process.on('SIGINT', stopServer);
+// Start the server when the app is run directly
+if (require.main === module) {
+    startServer();
+}

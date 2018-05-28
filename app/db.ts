@@ -4,30 +4,31 @@ import mongoose from 'mongoose';
 const dbURI = 'mongodb://localhost/rex';
 
 // Create the database connection
-export function connect() {
-    mongoose.connect(dbURI);
+export function connect(database?:string): Promise<typeof mongoose> {
+    if (database === undefined) {
+        return mongoose.connect(dbURI)
+    }
+    else {
+        return mongoose.connect(database);
+    }
+}
+
+export function disconnect(): Promise<void> {
+    return mongoose.connection.close();
 }
 
 // CONNECTION EVENTS
 // When successfully connected
 mongoose.connection.on('connected', function () {
-  console.log('Mongoose default connection open to ' + dbURI);
+    console.log('Mongoose default connection open');
 });
 
 // If the connection throws an error
-mongoose.connection.on('error',function (err) {
-  console.log('Mongoose default connection error: ' + err);
+mongoose.connection.on('error', function (err) {
+    console.log('Mongoose default connection error: ' + err);
 });
 
 // When the connection is disconnected
 mongoose.connection.on('disconnected', function () {
-  console.log('Mongoose default connection disconnected');
-});
-
-// If the Node process ends, close the Mongoose connection
-process.on('SIGINT', function() {
-  mongoose.connection.close(function () {
-    console.log('Mongoose default connection disconnected through app termination');
-    process.exit(0);
-  });
+    console.log('Mongoose default connection disconnected');
 });
