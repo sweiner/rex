@@ -1,8 +1,8 @@
 // @TODO - add more robust processing on routes
-
+import { NextHandleFunction } from 'connect';
 import { Router, Request, Response } from 'express';
 import { Requirement } from '../models/requirement';
-import { NextHandleFunction } from 'connect';
+import { update_history } from '../models/history';
 import bodyParser from 'body-parser';
 
 // Assign router to the express.Router() instance
@@ -70,9 +70,25 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
         return res.sendStatus(400)
     }
 
-    let promise = Requirement.findOneAndUpdate(query, {data: req.body.data}, {new: true});
+    let promise = Requirement.findOne(query);
 
+    // Update the requirement history
     promise.then((doc) => {
+        if(!doc) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (doc.history === undefined || doc.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+
+        doc.history.push(update_history(doc.data, req.body.data))
+        doc.data = req.body.data;
+        return doc;
+    })
+
+    // Then save the new requirement
+    .then((doc) => {
+        doc.save();
         return res.json(doc);
     })
 

@@ -1,11 +1,11 @@
 "use strict";
-// @TODO - add more robust processing on routes
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const requirement_1 = require("../models/requirement");
+const history_1 = require("../models/history");
 const body_parser_1 = __importDefault(require("body-parser"));
 // Assign router to the express.Router() instance
 const router = express_1.Router();
@@ -56,8 +56,22 @@ router.post('/edit/:id', jsonParser, (req, res) => {
     if (!req.body) {
         return res.sendStatus(400);
     }
-    let promise = requirement_1.Requirement.findOneAndUpdate(query, { data: req.body.data }, { new: true });
+    let promise = requirement_1.Requirement.findOne(query);
+    // Update the requirement history
     promise.then((doc) => {
+        if (!doc) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (doc.history === undefined || doc.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+        doc.history.push(history_1.update_history(doc.data, req.body.data));
+        doc.data = req.body.data;
+        return doc;
+    })
+        // Then save the new requirement
+        .then((doc) => {
+        doc.save();
         return res.json(doc);
     })
         .catch((reason) => {
