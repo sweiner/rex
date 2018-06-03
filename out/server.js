@@ -36,13 +36,11 @@ let server = null;
 // List of active connections for graceful server shutdown
 let connections = [];
 // Export server creation for use in testing
+// The promise is for use in testing to ensure the database connection has
+// been established before trying to access elements
 function startServer(database) {
     // Connect to Mongo
-    db.connect(database)
-        .catch((reason) => {
-        console.error('ERROR: Could not connect to MongoDB... Aborting');
-        process.exit(1);
-    });
+    let promise = db.connect(database);
     // Mount the WelcomeController at the /welcome route
     //app.use(bodyParser.json());
     app.use('/welcome', controllers_1.WelcomeController);
@@ -51,12 +49,13 @@ function startServer(database) {
     // Serve the application at the given port
     server = app.listen(exports.port, () => {
         // Success callback
-        console.log(`Listening at http://localhost:${exports.port}/`);
+        //console.log(`Listening at http://localhost:${port}/`);
     });
     server.on('connection', connection => {
         connections.push(connection);
         connection.on('close', () => connections = connections.filter(curr => curr !== connection));
     });
+    return promise;
 }
 exports.startServer = startServer;
 function stopServer() {
@@ -81,5 +80,9 @@ process.on('SIGTERM', stopServer);
 process.on('SIGINT', stopServer);
 // Start the server when the app is run directly
 if (require.main === module) {
-    startServer();
+    let promise = startServer();
+    promise.catch((reason) => {
+        console.error('ERROR: Could not connect to MongoDB... Aborting');
+        process.exit(1);
+    });
 }

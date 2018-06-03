@@ -6,8 +6,8 @@
   "scripts": {
     "start": "start mongod && start nodemon ./out/server.js",
     "stop": "taskkill /IM cmd.exe",
-    "poststop": "mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\"",
-    "test": "start mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" || mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\"",
+    "poststop": "mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL",
+    "test": "start mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" && mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL || mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL",
     "tsc": "tsc"
   },
   "author": "sweiner",

@@ -2,6 +2,7 @@
 
 // Import everything from express and assign it to the express variable
 import express from 'express';
+import mongoose from 'mongoose';
 import * as http from 'http';
 import * as db from './db';
 
@@ -28,13 +29,11 @@ let server: http.Server | null = null;
 let connections:Socket[]  = [];
 
 // Export server creation for use in testing
-export function startServer(database?:string) {
+// The promise is for use in testing to ensure the database connection has
+// been established before trying to access elements
+export function startServer(database?:string): Promise<typeof mongoose> {
     // Connect to Mongo
-    db.connect(database)
-        .catch((reason) => {
-            console.error('ERROR: Could not connect to MongoDB... Aborting');
-            process.exit(1);
-        });
+    let promise: Promise<typeof mongoose> = db.connect(database);
 
     // Mount the WelcomeController at the /welcome route
     //app.use(bodyParser.json());
@@ -45,13 +44,15 @@ export function startServer(database?:string) {
     // Serve the application at the given port
     server = app.listen(port, () => {
         // Success callback
-        console.log(`Listening at http://localhost:${port}/`);
+        //console.log(`Listening at http://localhost:${port}/`);
     });
 
     server.on('connection', connection => {
         connections.push(connection);
         connection.on('close', () => connections = connections.filter(curr => curr !== connection));
     });
+
+    return promise;
 }
 
 export function stopServer() {
@@ -79,6 +80,11 @@ process.on('SIGINT', stopServer);
 
 // Start the server when the app is run directly
 if (require.main === module) {
-    startServer();
+    let promise = startServer();
+
+    promise.catch((reason) => {
+        console.error('ERROR: Could not connect to MongoDB... Aborting');
+        process.exit(1);
+    });
 }
 
