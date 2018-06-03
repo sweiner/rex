@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const requirement_1 = require("../models/requirement");
@@ -56,22 +56,32 @@ router.post('/edit/:id', jsonParser, (req, res) => {
     if (!req.body) {
         return res.sendStatus(400);
     }
-    let promise = requirement_1.Requirement.findOne(query);
-    // Update the requirement history
-    promise.then((doc) => {
+    let req_promise = requirement_1.Requirement.findOne(query);
+    // Create the history entry
+    req_promise.then((doc) => {
         if (!doc) {
             throw new Error(id + 'does not exist!');
         }
         else if (doc.history === undefined || doc.data === undefined) {
             throw new Error('Error creating document history');
         }
-        doc.history.push(history_1.update_history(doc.data, req.body.data));
+        let hist_promise = history_1.History.create(history_1.update_history(doc.data, req.body.data));
         doc.data = req.body.data;
-        return doc;
+        return Promise.all([doc, hist_promise]);
     })
-        .then((doc) => {
+        // Then save the new requirement
+        .then((results) => {
+        let doc = results[0];
+        let hist = results[1];
+        if (!doc) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (doc.history === undefined || doc.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+        doc.history.push(hist._id);
         doc.save();
-        return res.json(doc);
+        return res.json(results[0]);
     })
         .catch((reason) => {
         let err = { 'error': reason };

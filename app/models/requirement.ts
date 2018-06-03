@@ -1,11 +1,10 @@
 import { Document, Schema, Model, Query, model } from 'mongoose';
-import { HistorySchema, IHistoryItem, update_history } from './history'
 
 interface IRequirement {
     reqid?: string;
-    data?: Schema.Types.Mixed;
-    history?: [IHistoryItem];
+    history?: [Schema.Types.ObjectId];
     deleted?: boolean;
+    data?: Schema.Types.Mixed;
 }
 
 export interface IRequirementModel extends IRequirement, Document {
@@ -14,7 +13,7 @@ export interface IRequirementModel extends IRequirement, Document {
 
 const RequirementSchema: Schema = new Schema({
     id: { type: String, index: true, unique: true },
-    history: [HistorySchema],
+    history: [{type: Schema.Types.ObjectId, ref:'History'}],
     deleted: Boolean,
     data: Schema.Types.Mixed
 });

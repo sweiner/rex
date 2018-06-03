@@ -2,7 +2,7 @@
 import { NextHandleFunction } from 'connect';
 import { Router, Request, Response } from 'express';
 import { Requirement } from '../models/requirement';
-import { update_history } from '../models/history';
+import { History, update_history, IHistoryModel } from '../models/history';
 import bodyParser from 'body-parser';
 
 // Assign router to the express.Router() instance
@@ -70,10 +70,10 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
         return res.sendStatus(400)
     }
 
-    let promise = Requirement.findOne(query);
+    let req_promise = Requirement.findOne(query);
 
-    // Update the requirement history
-    promise.then((doc) => {
+    // Create the history entry
+    req_promise.then((doc) => {
         if(!doc) {
             throw new Error(id + 'does not exist!');
         }
@@ -81,15 +81,27 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
             throw new Error('Error creating document history');
         }
 
-        doc.history.push(update_history(doc.data, req.body.data))
+        let hist_promise: Promise<IHistoryModel> = History.create(update_history(doc.data, req.body.data));
         doc.data = req.body.data;
-        return doc;
+        
+        return Promise.all([doc,hist_promise]);
     })
 
     // Then save the new requirement
-    .then((doc) => {
+    .then((results) => {
+        let doc = results[0];
+        let hist = results[1];
+
+        if(!doc) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (doc.history === undefined || doc.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+
+        doc.history.push(hist._id);
         doc.save();
-        return res.json(doc);
+        return res.json(results[0]);
     })
 
     .catch((reason) => {
