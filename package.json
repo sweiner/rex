@@ -4,14 +4,10 @@
   "description": "A requirements management backend",
   "main": "server.js",
   "scripts": {
-    "prestart": "start mongod",
-    "start": "start nodemon ./out/server.js",
-    "poststart": "start tsc --watch",
+    "start": "start mongod && start nodemon ./out/server.js",
     "stop": "taskkill /IM cmd.exe",
     "poststop": "mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\"",
-    "pretest": "start mongod",
-    "test": "mocha --requre ts-node/register \"./out/tests/**/*.js\"",
-    "posttest": "mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\"",
+    "test": "start mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" || mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\"",
     "tsc": "tsc"
   },
   "author": "sweiner",
