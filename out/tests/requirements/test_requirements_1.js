@@ -17,7 +17,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const server_1 = require("../../server");
 const server_location = "http://localhost:3000";
 const database = "mongodb://localhost/test";
-mocha.describe('Requirements Browsing - Basic', function () {
+mocha.describe('Requirements Creation - Basic', function () {
     mocha.before(function (done) {
         let promise = server_1.startServer(database);
         promise.then((connection) => {
@@ -38,7 +38,7 @@ mocha.describe('Requirements Browsing - Basic', function () {
         let data = { description: 'This is a sample requirement' };
         let options = {
             method: 'POST',
-            body: { data: data },
+            body: data,
             json: true
         };
         request.post(server_location + '/requirements/create/REQ001', options, function (err, res, body) {
@@ -49,15 +49,51 @@ mocha.describe('Requirements Browsing - Basic', function () {
             chai.expect(body.history).to.be.empty;
             done();
         });
-        mocha.after(function () {
-            let promise = mongoose_1.default.connection.dropDatabase();
-            promise.then((value) => {
-                server_1.stopServer();
-            })
-                .catch((reason) => {
-                console.log(reason);
-                server_1.stopServer();
-            });
+    });
+    mocha.it('Should reject the creation of a new requirement with an ID that matches an existing one', function (done) {
+        let data = { description: 'This is a sample requirement' };
+        let options = {
+            method: 'POST',
+            body: data,
+            json: true
+        };
+        request.post(server_location + '/requirements/create/REQ001', options, function (err, res, body) {
+            chai.expect(body.data).to.be.undefined;
+            chai.expect(body.id).to.be.undefined;
+            chai.expect(body._id).to.be.undefined;
+            chai.expect(body.deleted).to.be.undefined;
+            chai.expect(body.history).to.be.undefined;
+            // Error params
+            chai.expect(body.error.code).to.equal(11000);
+            chai.expect(body.error.message).contains('duplicate key error');
+            done();
+        });
+    });
+    mocha.it('Should reject the creation of a new requirement with no body', function (done) {
+        let options = {
+            method: 'POST',
+            json: true
+        };
+        let req = request.post(server_location + '/requirements/create/REQ002', options, function (err, res, body) {
+            chai.expect(body.data).to.be.undefined;
+            chai.expect(body.id).to.be.undefined;
+            chai.expect(body._id).to.be.undefined;
+            chai.expect(body.deleted).to.be.undefined;
+            chai.expect(body.history).to.be.undefined;
+            // Error params
+            chai.expect(body.error.name).to.equal('ValidationError');
+            chai.expect(body.error.message).contains('Requirement validation failed');
+            done();
+        });
+    });
+    mocha.after(function () {
+        let promise = mongoose_1.default.connection.dropDatabase();
+        promise.then((value) => {
+            server_1.stopServer();
+        })
+            .catch((reason) => {
+            console.log(reason);
+            server_1.stopServer();
         });
     });
 });

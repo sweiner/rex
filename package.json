@@ -7,6 +7,7 @@
     "start": "start mongod && start nodemon ./out/server.js",
     "stop": "taskkill /IM cmd.exe",
     "poststop": "mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL",
+    "pretest": "tsc",
     "test": "start mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" && mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL || mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL",
     "tsc": "tsc"
   },

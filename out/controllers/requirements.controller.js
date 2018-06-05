@@ -37,11 +37,8 @@ router.get('/browse/:id', (req, res) => {
 });
 router.post('/create/:id', jsonParser, (req, res) => {
     let { id } = req.params;
-    if (!req.body) {
-        return res.sendStatus(400);
-    }
     // @TODO add validation on JSON
-    let promise = requirement_1.Requirement.create({ id: id, data: req.body.data, deleted: false });
+    let promise = requirement_1.Requirement.create({ id: id, data: req.body, deleted: false });
     promise.then((requirement) => {
         return res.json(requirement);
     })
@@ -53,9 +50,6 @@ router.post('/create/:id', jsonParser, (req, res) => {
 router.post('/edit/:id', jsonParser, (req, res) => {
     let { id } = req.params;
     let query = { 'id': id };
-    if (!req.body) {
-        return res.sendStatus(400);
-    }
     let req_promise = requirement_1.Requirement.findOne(query);
     // Create the history entry
     req_promise.then((doc) => {
@@ -65,8 +59,8 @@ router.post('/edit/:id', jsonParser, (req, res) => {
         else if (doc.history === undefined || doc.data === undefined) {
             throw new Error('Error creating document history');
         }
-        let hist_promise = history_1.History.create(history_1.update_history(doc.data, req.body.data));
-        doc.data = req.body.data;
+        let hist_promise = history_1.History.create(history_1.update_history(doc.data, req.body));
+        doc.data = req.body;
         return Promise.all([doc, hist_promise]);
     })
         // Then save the new requirement

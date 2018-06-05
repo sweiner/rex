@@ -7,8 +7,7 @@ import bodyParser from 'body-parser';
 
 // Assign router to the express.Router() instance
 const router: Router = Router();
-const jsonParser: NextHandleFunction = bodyParser.json() 
-
+const jsonParser: NextHandleFunction = bodyParser.json(); 
 
 // @TODO modify the global browse to be efficient
 router.get('/browse', (req: Request, res: Response) => {
@@ -45,12 +44,9 @@ router.get('/browse/:id', (req: Request, res: Response) => {
 
 router.post('/create/:id', jsonParser, (req: Request, res: Response) => {
     let { id } = req.params;
-    if (!req.body) {
-        return res.sendStatus(400)
-    }
 
     // @TODO add validation on JSON
-    let promise = Requirement.create({id: id, data: req.body.data, deleted: false});
+    let promise = Requirement.create({id: id, data: req.body, deleted: false});
 
     promise.then((requirement) => {
         return res.json(requirement);
@@ -66,10 +62,6 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
     let { id } = req.params;
     let query = { 'id': id };
 
-    if (!req.body) {
-        return res.sendStatus(400)
-    }
-
     let req_promise = Requirement.findOne(query);
 
     // Create the history entry
@@ -81,8 +73,8 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
             throw new Error('Error creating document history');
         }
 
-        let hist_promise: Promise<IHistoryModel> = History.create(update_history(doc.data, req.body.data));
-        doc.data = req.body.data;
+        let hist_promise: Promise<IHistoryModel> = History.create(update_history(doc.data, req.body));
+        doc.data = req.body;
         
         return Promise.all([doc,hist_promise]);
     })
