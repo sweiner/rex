@@ -37,7 +37,6 @@ router.get('/browse/:id', (req, res) => {
 });
 router.post('/create/:id', jsonParser, (req, res) => {
     let { id } = req.params;
-    // @TODO add validation on JSON
     let promise = requirement_1.Requirement.create({ id: id, data: req.body, deleted: false });
     promise.then((requirement) => {
         return res.json(requirement);

@@ -70,23 +70,18 @@ mocha.describe('Requirements Creation - Basic',function() {
         });
     });
 
-    mocha.it('Should reject the creation of a new requirement with no body', function (done) {
+    mocha.it('Should create a requirement with blank data if the body is empty', function (done) {
         let options: request.CoreOptions = {
             method: 'POST',
             json: true
           };
         
         let req = request.post(server_location+'/requirements/create/REQ002', options, function(err,res,body) {
-            chai.expect(body.data).to.be.undefined
-            chai.expect(body.id).to.be.undefined
-            chai.expect(body._id).to.be.undefined;
-            chai.expect(body.deleted).to.be.undefined;
-            chai.expect(body.history).to.be.undefined;
-            
-            // Error params
-            chai.expect(body.error.name).to.equal('ValidationError');
-            chai.expect(body.error.message).contains('Requirement validation failed');
-
+            chai.expect(body.data).to.deep.equal({});
+            chai.expect(body.id).to.equal('REQ002');
+            chai.expect(body._id).to.exist;
+            chai.expect(body.deleted).to.equal(false);
+            chai.expect(body.history).to.be.empty;
             done();
         });
     });
