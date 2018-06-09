@@ -4,7 +4,7 @@
   "description": "A requirements management backend",
   "main": "server.js",
   "scripts": {
-    "start": "start mongod && start nodemon ./out/server.js",
+    "start": "start mongod && start nodemon ./out/server.js && start tsc --watch",
     "stop": "taskkill /IM cmd.exe",
     "poststop": "mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL",
     "pretest": "tsc",

@@ -7,3 +7,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./welcome.controller"));
 __export(require("./users.controller"));
 __export(require("./requirements.controller"));
+__export(require("./history.controller"));

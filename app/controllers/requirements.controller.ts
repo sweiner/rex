@@ -1,9 +1,10 @@
 // @TODO - add more robust processing on routes
 import { NextHandleFunction } from 'connect';
 import { Router, Request, Response } from 'express';
-import { Requirement } from '../models/requirement';
-import { History, update_history, IHistoryModel } from '../models/history';
+import { Requirement, IRequirementModel } from '../models/requirement';
+import { History, create_patch, IHistoryModel } from '../models/history';
 import bodyParser from 'body-parser';
+import { Schema } from 'mongoose';
 
 // Assign router to the express.Router() instance
 const router: Router = Router();
@@ -44,13 +45,38 @@ router.get('/browse/:id', (req: Request, res: Response) => {
 
 router.post('/create/:id', jsonParser, (req: Request, res: Response) => {
     let { id } = req.params;
-    
-    let promise = Requirement.create({id: id, data: req.body, deleted: false});
+ 
+    let req_promise: Promise<IRequirementModel> = Requirement.create({id: id, data: req.body, deleted: false});
 
-    promise.then((requirement) => {
+    req_promise.then((requirement) => {
+        //Create a new history item 
+        if(!requirement) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (requirement.history === undefined || requirement.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+
+        let hist_promise: Promise<IHistoryModel> = History.create({patch: {}, log: "Initial Creation"});
+        
+        return Promise.all([requirement,hist_promise]);
+    })
+    .then((results) => {
+        let requirement:IRequirementModel = results[0];
+        let history:IHistoryModel = results[1];
+
+        if(!requirement) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (requirement.history === undefined || requirement.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+
+        requirement.history.push(history._id);
+        requirement.save();
+
         return res.json(requirement);
     })
-    
     .catch((reason) => {
         let err = {'error': reason};
         return res.json(err);
@@ -64,34 +90,35 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
     let req_promise = Requirement.findOne(query);
 
     // Create the history entry
-    req_promise.then((doc) => {
-        if(!doc) {
+    req_promise.then((requirement) => {
+        if(!requirement) {
             throw new Error(id + 'does not exist!');
         }
-        else if (doc.history === undefined || doc.data === undefined) {
+        else if (requirement.history === undefined || requirement.data === undefined) {
             throw new Error('Error creating document history');
         }
 
-        let hist_promise: Promise<IHistoryModel> = History.create(update_history(doc.data, req.body));
-        doc.data = req.body;
+        //Create a new history itemNN
+        let hist_promise: Promise<IHistoryModel> = History.create({patch: create_patch(requirement.data, req.body)});
+        requirement.data = req.body;
         
-        return Promise.all([doc,hist_promise]);
+        return Promise.all([requirement,hist_promise]);
     })
 
     // Then save the new requirement
     .then((results) => {
-        let doc = results[0];
+        let requirement = results[0];
         let hist = results[1];
 
-        if(!doc) {
+        if(!requirement) {
             throw new Error(id + 'does not exist!');
         }
-        else if (doc.history === undefined || doc.data === undefined) {
+        else if (requirement.history === undefined || requirement.data === undefined) {
             throw new Error('Error creating document history');
         }
 
-        doc.history.push(hist._id);
-        doc.save();
+        requirement.history.push(hist._id);
+        requirement.save();
         return res.json(results[0]);
     })
 
@@ -106,8 +133,8 @@ router.post('/delete', (req: Request, res: Response) => {
     let query = {};
     let promise = Requirement.updateMany(query, {deleted: true});
 
-    promise.then((doc) => {
-        return res.json(doc);
+    promise.then((requirements) => {
+        return res.json(requirements);
     })
 
     .catch((reason) => {
@@ -122,8 +149,8 @@ router.post('/delete/:id', (req: Request, res: Response) => {
 
     let promise = Requirement.findOneAndUpdate(query, {deleted: true}, {new: true});
 
-    promise.then((doc) => {
-        return res.json(doc);
+    promise.then((requirement) => {
+        return res.json(requirement);
     })
 
     .catch((reason) => {
@@ -138,8 +165,8 @@ router.post('/restore/:id', (req: Request, res: Response) => {
   
     let promise = Requirement.findOneAndUpdate(query, {deleted: false}, {new: true});
 
-    promise.then((doc) => {
-        return res.json(doc);
+    promise.then((requirement) => {
+        return res.json(requirement);
     })
 
     .catch((reason) => {
@@ -152,8 +179,8 @@ router.post('/purge', (req: Request, res: Response) => {
     let query = { 'deleted': true };
     let promise = Requirement.remove(query);
 
-    promise.then((doc) => {
-        return res.json(doc);
+    promise.then((requirement) => {
+        return res.json(requirement);
     })
 
     .catch((reason) => {
@@ -168,8 +195,8 @@ router.post('/purge/:id', (req: Request, res: Response) => {
 
     let promise = Requirement.findOneAndRemove(query);
 
-    promise.then((doc) => {
-        return res.json(doc);
+    promise.then((requirement) => {
+        return res.json(requirement);
     })
 
     .catch((reason) => {

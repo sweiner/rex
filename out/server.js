@@ -43,9 +43,9 @@ function startServer(database) {
     let promise = db.connect(database);
     // Mount the WelcomeController at the /welcome route
     //app.use(bodyParser.json());
-    app.use('/welcome', controllers_1.WelcomeController);
     app.use('/users', controllers_2.UsersController);
     app.use('/requirements', controllers_1.RequirementsController);
+    app.use('/history', controllers_1.HistoryController);
     // Serve the application at the given port
     server = app.listen(exports.port, () => {
         // Success callback
@@ -76,6 +76,7 @@ function stopServer() {
     }
 }
 exports.stopServer = stopServer;
+// Handle Abrupt server shutdowns
 process.on('SIGTERM', stopServer);
 process.on('SIGINT', stopServer);
 // Start the server when the app is run directly

@@ -14,10 +14,10 @@ export interface IHistoryModel extends IHistory, Document {
 export const HistorySchema: Schema = new Schema(
     { log: String, patch: [Schema.Types.Mixed] });
 
-export function update_history(new_data: Schema.Types.Mixed, old_data: Schema.Types.Mixed):IHistory {
-    let new_item: IHistory;
+export function create_patch(old_data: Schema.Types.Mixed, new_data: Schema.Types.Mixed):Operation[] {
+    let new_item: Operation[];
 
-    new_item = { patch: rfc.createPatch(old_data, new_data) };
+    new_item = rfc.createPatch(new_data, old_data);
     return new_item
 }
 

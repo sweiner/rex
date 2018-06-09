@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as db from './db';
 
 // Import WelcomeController from controllers entry point
-import { WelcomeController, RequirementsController } from './controllers';
+import { RequirementsController, HistoryController } from './controllers';
 import { UsersController } from './controllers';
 import { Socket } from 'net';
 
@@ -37,9 +37,9 @@ export function startServer(database?:string): Promise<typeof mongoose> {
 
     // Mount the WelcomeController at the /welcome route
     //app.use(bodyParser.json());
-    app.use('/welcome', WelcomeController);
     app.use('/users', UsersController);
     app.use('/requirements', RequirementsController);
+    app.use('/history', HistoryController);
 
     // Serve the application at the given port
     server = app.listen(port, () => {
@@ -75,6 +75,7 @@ export function stopServer() {
     }
 }
 
+// Handle Abrupt server shutdowns
 process.on('SIGTERM', stopServer);
 process.on('SIGINT', stopServer);
 
