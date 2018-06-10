@@ -2,18 +2,14 @@
 import { NextHandleFunction } from 'connect';
 import { Router, Request, Response } from 'express';
 import { Requirement } from '../models/requirement';
-import { History, update_history, IHistoryModel } from '../models/history';
+import { History, create_patch, IHistoryModel } from '../models/history';
 import bodyParser from 'body-parser';
 
 // Assign router to the express.Router() instance
 const router: Router = Router();
 
-// @TODO modify the global browse to be efficient
-router.get('/browse', (req: Request, res: Response) => {
-
-});
-
-router.get('/browse/:id', (req: Request, res: Response) => {
+// Display all history for a given requirement
+router.get('/:id', (req: Request, res: Response) => {
 
 });
 

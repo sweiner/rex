@@ -46,7 +46,7 @@ mocha.describe('Requirements Creation - Basic', function () {
             chai.expect(body.id).to.equal('REQ001');
             chai.expect(body._id).to.exist;
             chai.expect(body.deleted).to.equal(false);
-            chai.expect(body.history).to.be.empty;
+            chai.expect(body.history).to.have.length(1);
             done();
         });
     });
@@ -79,7 +79,7 @@ mocha.describe('Requirements Creation - Basic', function () {
             chai.expect(body.id).to.equal('REQ002');
             chai.expect(body._id).to.exist;
             chai.expect(body.deleted).to.equal(false);
-            chai.expect(body.history).to.be.empty;
+            chai.expect(body.history).to.have.length(1);
             done();
         });
     });

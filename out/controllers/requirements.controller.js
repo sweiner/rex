@@ -37,7 +37,7 @@ router.get('/browse/:id', (req, res) => {
 });
 router.post('/create/:id', jsonParser, (req, res) => {
     let { id } = req.params;
-    let req_promise = requirement_1.Requirement.create({ id: id, data: req.body, deleted: false });
+    let req_promise = requirement_1.Requirement.create({ id: id, data: req.body.data, deleted: false });
     req_promise.then((requirement) => {
         //Create a new history item 
         if (!requirement) {
@@ -46,7 +46,7 @@ router.post('/create/:id', jsonParser, (req, res) => {
         else if (requirement.history === undefined || requirement.data === undefined) {
             throw new Error('Error creating document history');
         }
-        let hist_promise = history_1.History.create({ patch: {}, log: "Initial Creation" });
+        let hist_promise = history_1.History.create({ patch: {}, log: req.body.log });
         return Promise.all([requirement, hist_promise]);
     })
         .then((results) => {
@@ -79,9 +79,9 @@ router.post('/edit/:id', jsonParser, (req, res) => {
         else if (requirement.history === undefined || requirement.data === undefined) {
             throw new Error('Error creating document history');
         }
-        //Create a new history itemNN
-        let hist_promise = history_1.History.create({ patch: history_1.create_patch(requirement.data, req.body) });
-        requirement.data = req.body;
+        //Create a new history item
+        let hist_promise = history_1.History.create({ patch: history_1.create_patch(requirement.data, req.body.data), log: req.body.log });
+        requirement.data = req.body.data;
         return Promise.all([requirement, hist_promise]);
     })
         // Then save the new requirement
@@ -96,7 +96,7 @@ router.post('/edit/:id', jsonParser, (req, res) => {
         }
         requirement.history.push(hist._id);
         requirement.save();
-        return res.json(results[0]);
+        return res.json(requirement);
     })
         .catch((reason) => {
         let err = { 'error': reason };
@@ -118,8 +118,32 @@ router.post('/delete', (req, res) => {
 router.post('/delete/:id', (req, res) => {
     let { id } = req.params;
     let query = { 'id': id };
-    let promise = requirement_1.Requirement.findOneAndUpdate(query, { deleted: true }, { new: true });
-    promise.then((requirement) => {
+    let req_promise = requirement_1.Requirement.findOne(query);
+    req_promise.then((requirement) => {
+        if (!requirement) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (requirement.history === undefined || requirement.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+        else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
+            return Promise.reject('Requirement has already been deleted!');
+        }
+        let hist_promise = history_1.History.create({ patch: history_1.create_patch(requirement.data, {}) });
+        requirement.data = {};
+        return Promise.all([requirement, hist_promise]);
+    })
+        .then((results) => {
+        let requirement = results[0];
+        let history = results[1];
+        if (!requirement) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (requirement.history === undefined || requirement.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+        requirement.history.push(history._id);
+        requirement.save();
         return res.json(requirement);
     })
         .catch((reason) => {

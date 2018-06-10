@@ -4,7 +4,7 @@ import { Router, Request, Response } from 'express';
 import { Requirement, IRequirementModel } from '../models/requirement';
 import { History, create_patch, IHistoryModel } from '../models/history';
 import bodyParser from 'body-parser';
-import { Schema } from 'mongoose';
+import { Schema, Mongoose } from 'mongoose';
 
 // Assign router to the express.Router() instance
 const router: Router = Router();
@@ -46,7 +46,7 @@ router.get('/browse/:id', (req: Request, res: Response) => {
 router.post('/create/:id', jsonParser, (req: Request, res: Response) => {
     let { id } = req.params;
  
-    let req_promise: Promise<IRequirementModel> = Requirement.create({id: id, data: req.body, deleted: false});
+    let req_promise: Promise<IRequirementModel> = Requirement.create({id: id, data: req.body.data, deleted: false});
 
     req_promise.then((requirement) => {
         //Create a new history item 
@@ -57,7 +57,7 @@ router.post('/create/:id', jsonParser, (req: Request, res: Response) => {
             throw new Error('Error creating document history');
         }
 
-        let hist_promise: Promise<IHistoryModel> = History.create({patch: {}, log: "Initial Creation"});
+        let hist_promise: Promise<IHistoryModel> = History.create({patch: {}, log: req.body.log});
         
         return Promise.all([requirement,hist_promise]);
     })
@@ -98,9 +98,9 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
             throw new Error('Error creating document history');
         }
 
-        //Create a new history itemNN
-        let hist_promise: Promise<IHistoryModel> = History.create({patch: create_patch(requirement.data, req.body)});
-        requirement.data = req.body;
+        //Create a new history item
+        let hist_promise: Promise<IHistoryModel> = History.create({patch: create_patch(requirement.data, req.body.data),log:req.body.log});
+        requirement.data = req.body.data;
         
         return Promise.all([requirement,hist_promise]);
     })
@@ -119,7 +119,7 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
 
         requirement.history.push(hist._id);
         requirement.save();
-        return res.json(results[0]);
+        return res.json(requirement);
     })
 
     .catch((reason) => {
@@ -147,12 +147,40 @@ router.post('/delete/:id', (req: Request, res: Response) => {
     let { id } = req.params;
     let query = { 'id': id };
 
-    let promise = Requirement.findOneAndUpdate(query, {deleted: true}, {new: true});
+    let req_promise = Requirement.findOne(query);
 
-    promise.then((requirement) => {
-        return res.json(requirement);
+    req_promise.then((requirement) => {
+        if(!requirement) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (requirement.history === undefined || requirement.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+        else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
+            return Promise.reject('Requirement has already been deleted!');
+        }
+
+        let hist_promise: Promise<IHistoryModel> = History.create({patch: create_patch(requirement.data,<Schema.Types.Mixed> {})});      
+        
+        requirement.data = <Schema.Types.Mixed> {};
+        return Promise.all([requirement,hist_promise]); 
     })
+    .then((results) =>{
+        let requirement:IRequirementModel = results[0];
+        let history:IHistoryModel = results[1];
 
+        if(!requirement) {
+            throw new Error(id + 'does not exist!');
+        }
+        else if (requirement.history === undefined || requirement.data === undefined) {
+            throw new Error('Error creating document history');
+        }
+
+        requirement.history.push(history._id);
+        requirement.save();
+        return res.json(requirement);
+
+    })
     .catch((reason) => {
         let err = {'error': reason}
         return res.json(err);

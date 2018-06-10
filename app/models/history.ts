@@ -18,6 +18,7 @@ export function create_patch(old_data: Schema.Types.Mixed, new_data: Schema.Type
     let new_item: Operation[];
 
     new_item = rfc.createPatch(new_data, old_data);
+    console.log(new_item);
     return new_item
 }
 
