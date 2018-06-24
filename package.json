@@ -1,5 +1,5 @@
 {
-  "name": "rex-server",
+  "name": "rex",
   "version": "0.1.0",
   "description": "A requirements management backend",
   "main": "server.js",
@@ -12,7 +12,7 @@
     "tsc": "tsc"
   },
   "author": "sweiner",
-  "license": "ISC",
+  "license": "See License File",
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
