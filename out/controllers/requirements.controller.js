@@ -35,8 +35,11 @@ router.get('/browse/:id', (req, res) => {
         return res.json(err);
     });
 });
-router.post('/create/:id', jsonParser, (req, res) => {
+router.post('/add/:id', jsonParser, (req, res) => {
     let { id } = req.params;
+    if (req.body.data === undefined) {
+        throw new Error("Requirement body is undefined!");
+    }
     let req_promise = requirement_1.Requirement.create({ id: id, data: req.body.data, deleted: false });
     req_promise.then((requirement) => {
         //Create a new history item 

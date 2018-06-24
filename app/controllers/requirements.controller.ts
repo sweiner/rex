@@ -43,9 +43,13 @@ router.get('/browse/:id', (req: Request, res: Response) => {
     });
 });
 
-router.post('/create/:id', jsonParser, (req: Request, res: Response) => {
+router.post('/add/:id', jsonParser, (req: Request, res: Response) => {
     let { id } = req.params;
  
+    if (req.body.data === undefined) {
+        throw new Error("Requirement body is undefined!");
+    }
+    
     let req_promise: Promise<IRequirementModel> = Requirement.create({id: id, data: req.body.data, deleted: false});
 
     req_promise.then((requirement) => {
