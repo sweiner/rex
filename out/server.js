@@ -46,6 +46,15 @@ function startServer(database) {
     app.use('/users', controllers_2.UsersController);
     app.use('/requirements', controllers_1.RequirementsController);
     app.use('/history', controllers_1.HistoryController);
+    // Define error handling middleware
+    app.use(function (err, req, res, next) {
+        console.log(err.stack);
+        if (res.statusCode < 400) {
+            res.status(500);
+        }
+        res.json({ 'error': err.message || 'An unspecified error has occrred' });
+        next();
+    });
     // Serve the application at the given port
     server = app.listen(exports.port, () => {
         // Success callback

@@ -11,22 +11,22 @@ const router: Router = Router();
 const jsonParser: NextHandleFunction = bodyParser.json(); 
 
 // @TODO modify the global browse to be efficient
-router.get('/browse', (req: Request, res: Response) => {
-
+router.get('/browse', (req: Request, res: Response, next: (...args:any[]) => void) => {
     //Create an async request to obtain all of the requirements
     let promise = Requirement.find();
 
     promise.then((requirements) => {
-        return res.json(requirements);
-    })
 
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+        let simplified = requirements.map(requirement => {
+            return {"id":requirement.id, "data": requirement.data};
+        });
+
+        return res.json(simplified);
+    })
+    .catch(next);
 });
 
-router.get('/browse/:id', (req: Request, res: Response) => {
+router.get('/browse/:id', (req: Request, res: Response, next: (...args:any[]) => void) => {
     // Extract the name from the request parameters
     let { id } = req.params;
 
@@ -36,18 +36,15 @@ router.get('/browse/:id', (req: Request, res: Response) => {
     promise.then((requirement) => {
         return res.json(requirement);
     })
-
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+    .catch(next);
 });
 
-router.post('/add/:id', jsonParser, (req: Request, res: Response) => {
+router.post('/add/:id', jsonParser, (req: Request, res: Response, next: (...args:any[]) => void) => {
     let { id } = req.params;
  
     if (req.body.data === undefined) {
-        throw new Error("Requirement body is undefined!");
+        res.status(400);
+        throw new Error("'data' field in the Requirement body is undefined!");
     }
     
     let req_promise: Promise<IRequirementModel> = Requirement.create({id: id, data: req.body.data, deleted: false});
@@ -62,7 +59,6 @@ router.post('/add/:id', jsonParser, (req: Request, res: Response) => {
         }
 
         let hist_promise: Promise<IHistoryModel> = History.create({patch: {}, log: req.body.log});
-        
         return Promise.all([requirement,hist_promise]);
     })
     .then((results) => {
@@ -81,13 +77,10 @@ router.post('/add/:id', jsonParser, (req: Request, res: Response) => {
 
         return res.json(requirement);
     })
-    .catch((reason) => {
-        let err = {'error': reason};
-        return res.json(err);
-    });
+    .catch(next);
 });
 
-router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
+router.post('/edit/:id', jsonParser, (req: Request, res: Response, next: (...args:any[]) => void) => {
     let { id } = req.params;
     let query = { 'id': id };
 
@@ -125,29 +118,21 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response) => {
         requirement.save();
         return res.json(requirement);
     })
-
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+    .catch(next);
 });
 
 // Developmental API
-router.post('/delete', (req: Request, res: Response) => {
+router.post('/delete', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let query = {};
     let promise = Requirement.updateMany(query, {deleted: true});
 
     promise.then((requirements) => {
         return res.json(requirements);
     })
-
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+    .catch(next);
 });
 
-router.post('/delete/:id', (req: Request, res: Response) => {
+router.post('/delete/:id', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let { id } = req.params;
     let query = { 'id': id };
 
@@ -161,7 +146,7 @@ router.post('/delete/:id', (req: Request, res: Response) => {
             throw new Error('Error creating document history');
         }
         else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
-            return Promise.reject('Requirement has already been deleted!');
+            throw new Error('Requirement has already been deleted!');
         }
 
         let hist_promise: Promise<IHistoryModel> = History.create({patch: create_patch(requirement.data,<Schema.Types.Mixed> {})});      
@@ -185,13 +170,10 @@ router.post('/delete/:id', (req: Request, res: Response) => {
         return res.json(requirement);
 
     })
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+    .catch(next);
 });
 
-router.post('/restore/:id', (req: Request, res: Response) => {
+router.post('/restore/:id', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let { id } = req.params;
     let query = { 'id': id };
   
@@ -200,28 +182,20 @@ router.post('/restore/:id', (req: Request, res: Response) => {
     promise.then((requirement) => {
         return res.json(requirement);
     })
-
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+    .catch(next);
 });
 
-router.post('/purge', (req: Request, res: Response) => {
+router.post('/purge', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let query = { 'deleted': true };
     let promise = Requirement.remove(query);
 
     promise.then((requirement) => {
         return res.json(requirement);
     })
-
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+    .catch(next);
 });
 
-router.post('/purge/:id', (req: Request, res: Response) => {
+router.post('/purge/:id', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let { id } = req.params;
     let query = { 'id': id, 'deleted': true };
 
@@ -230,11 +204,7 @@ router.post('/purge/:id', (req: Request, res: Response) => {
     promise.then((requirement) => {
         return res.json(requirement);
     })
-
-    .catch((reason) => {
-        let err = {'error': reason}
-        return res.json(err);
-    });
+    .catch(next);
 });
 
 // Export the express.Router() instance to be used by server.ts

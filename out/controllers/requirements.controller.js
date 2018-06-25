@@ -11,18 +11,18 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const router = express_1.Router();
 const jsonParser = body_parser_1.default.json();
 // @TODO modify the global browse to be efficient
-router.get('/browse', (req, res) => {
+router.get('/browse', (req, res, next) => {
     //Create an async request to obtain all of the requirements
     let promise = requirement_1.Requirement.find();
     promise.then((requirements) => {
-        return res.json(requirements);
+        let simplified = requirements.map(requirement => {
+            return { "id": requirement.id, "data": requirement.data };
+        });
+        return res.json(simplified);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
-router.get('/browse/:id', (req, res) => {
+router.get('/browse/:id', (req, res, next) => {
     // Extract the name from the request parameters
     let { id } = req.params;
     // Create an async request to find a particular requirement by reqid
@@ -30,15 +30,13 @@ router.get('/browse/:id', (req, res) => {
     promise.then((requirement) => {
         return res.json(requirement);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
-router.post('/add/:id', jsonParser, (req, res) => {
+router.post('/add/:id', jsonParser, (req, res, next) => {
     let { id } = req.params;
     if (req.body.data === undefined) {
-        throw new Error("Requirement body is undefined!");
+        res.status(400);
+        throw new Error("'data' field in the Requirement body is undefined!");
     }
     let req_promise = requirement_1.Requirement.create({ id: id, data: req.body.data, deleted: false });
     req_promise.then((requirement) => {
@@ -65,12 +63,9 @@ router.post('/add/:id', jsonParser, (req, res) => {
         requirement.save();
         return res.json(requirement);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
-router.post('/edit/:id', jsonParser, (req, res) => {
+router.post('/edit/:id', jsonParser, (req, res, next) => {
     let { id } = req.params;
     let query = { 'id': id };
     let req_promise = requirement_1.Requirement.findOne(query);
@@ -101,24 +96,18 @@ router.post('/edit/:id', jsonParser, (req, res) => {
         requirement.save();
         return res.json(requirement);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
 // Developmental API
-router.post('/delete', (req, res) => {
+router.post('/delete', (req, res, next) => {
     let query = {};
     let promise = requirement_1.Requirement.updateMany(query, { deleted: true });
     promise.then((requirements) => {
         return res.json(requirements);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
-router.post('/delete/:id', (req, res) => {
+router.post('/delete/:id', (req, res, next) => {
     let { id } = req.params;
     let query = { 'id': id };
     let req_promise = requirement_1.Requirement.findOne(query);
@@ -130,7 +119,7 @@ router.post('/delete/:id', (req, res) => {
             throw new Error('Error creating document history');
         }
         else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
-            return Promise.reject('Requirement has already been deleted!');
+            throw new Error('Requirement has already been deleted!');
         }
         let hist_promise = history_1.History.create({ patch: history_1.create_patch(requirement.data, {}) });
         requirement.data = {};
@@ -149,45 +138,33 @@ router.post('/delete/:id', (req, res) => {
         requirement.save();
         return res.json(requirement);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
-router.post('/restore/:id', (req, res) => {
+router.post('/restore/:id', (req, res, next) => {
     let { id } = req.params;
     let query = { 'id': id };
     let promise = requirement_1.Requirement.findOneAndUpdate(query, { deleted: false }, { new: true });
     promise.then((requirement) => {
         return res.json(requirement);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
-router.post('/purge', (req, res) => {
+router.post('/purge', (req, res, next) => {
     let query = { 'deleted': true };
     let promise = requirement_1.Requirement.remove(query);
     promise.then((requirement) => {
         return res.json(requirement);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
-router.post('/purge/:id', (req, res) => {
+router.post('/purge/:id', (req, res, next) => {
     let { id } = req.params;
     let query = { 'id': id, 'deleted': true };
     let promise = requirement_1.Requirement.findOneAndRemove(query);
     promise.then((requirement) => {
         return res.json(requirement);
     })
-        .catch((reason) => {
-        let err = { 'error': reason };
-        return res.json(err);
-    });
+        .catch(next);
 });
 // Export the express.Router() instance to be used by server.ts
 exports.RequirementsController = router;

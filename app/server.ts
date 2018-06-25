@@ -41,6 +41,16 @@ export function startServer(database?:string): Promise<typeof mongoose> {
     app.use('/requirements', RequirementsController);
     app.use('/history', HistoryController);
 
+    // Define error handling middleware
+    app.use(function(err:Error, req:express.Request, res:express.Response, next: ((value?:any) => void)){
+        console.log(err.stack);
+        if (res.statusCode < 400) {
+            res.status(500);
+        }
+        res.json({'error':err.message || 'An unspecified error has occrred'});
+        next();
+    });
+
     // Serve the application at the given port
     server = app.listen(port, () => {
         // Success callback
