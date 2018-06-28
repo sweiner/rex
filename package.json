@@ -4,11 +4,10 @@
   "description": "A requirements management backend",
   "main": "server.js",
   "scripts": {
-    "start": "start mongod && start nodemon ./out/server.js && start tsc --watch",
-    "stop": "taskkill /IM cmd.exe",
-    "poststop": "mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL",
+    "start": "start \"rex-mongod\" mongod && start \"rex-nodemon\" nodemon ./out/server.js && start \"rex-tsc\" tsc --watch",
+    "stop": "taskkill /FI \"WINDOWTITLE eq rex-mongod*\" && taskkill /FI \"WINDOWTITLE eq rex-nodemon*\" && taskkill /FI \"WINDOWTITLE eq rex-tsc*\"",
     "pretest": "tsc",
-    "test": "start mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" && mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL || mongo admin --eval \"db.getSiblingDB('admin').shutdownServer()\" > NUL",
+    "test": "start \"rex-mongod\" mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" && taskkill /FI \"WINDOWTITLE eq rex-mongod*\" > NUL || taskkill /FI \"WINDOWTITLE eq rex-mongod*\" > NUL",
     "tsc": "tsc"
   },
   "author": "sweiner",
