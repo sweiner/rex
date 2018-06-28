@@ -1,7 +1,7 @@
 // @TODO - add more robust processing on routes
 import { NextHandleFunction } from 'connect';
 import { Router, Request, Response } from 'express';
-import { Requirement, IRequirementModel } from '../models/requirement';
+import { Requirement, IRequirementModel, simplify_requirement } from '../models/requirement';
 import { History, create_patch, IHistoryModel } from '../models/history';
 import bodyParser from 'body-parser';
 import { Schema, Mongoose } from 'mongoose';
@@ -18,7 +18,7 @@ router.get('/browse', (req: Request, res: Response, next: (...args:any[]) => voi
     promise.then((requirements) => {
 
         let simplified = requirements.map(requirement => {
-            return {"id":requirement.id, "data": requirement.data};
+            return simplify_requirement(requirement);
         });
 
         return res.json(simplified);
@@ -34,7 +34,9 @@ router.get('/browse/:id', (req: Request, res: Response, next: (...args:any[]) =>
     let promise = Requirement.findOne({id: id});
 
     promise.then((requirement) => {
-        return res.json(requirement);
+        if (requirement === null) { throw new Error ("Requirement does not exist!")}
+        let simplified = simplify_requirement(requirement)
+        return res.json(simplified);
     })
     .catch(next);
 });
@@ -75,7 +77,8 @@ router.post('/add/:id', jsonParser, (req: Request, res: Response, next: (...args
         requirement.history.push(history._id);
         requirement.save();
 
-        return res.json(requirement);
+        let simplified = simplify_requirement(requirement)
+        return res.json(simplified);
     })
     .catch(next);
 });
@@ -104,8 +107,8 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response, next: (...arg
 
     // Then save the new requirement
     .then((results) => {
-        let requirement = results[0];
-        let hist = results[1];
+        let requirement:IRequirementModel = results[0];
+        let history:IHistoryModel = results[1];
 
         if(!requirement) {
             throw new Error(id + 'does not exist!');
@@ -114,9 +117,11 @@ router.post('/edit/:id', jsonParser, (req: Request, res: Response, next: (...arg
             throw new Error('Error creating document history');
         }
 
-        requirement.history.push(hist._id);
+        requirement.history.push(history._id);
         requirement.save();
-        return res.json(requirement);
+        
+        let simplified = simplify_requirement(requirement)
+        return res.json(simplified);
     })
     .catch(next);
 });
@@ -167,12 +172,15 @@ router.post('/delete/:id', (req: Request, res: Response, next: (...args:any[]) =
 
         requirement.history.push(history._id);
         requirement.save();
-        return res.json(requirement);
+
+        let simplified = simplify_requirement(requirement)
+        return res.json(simplified);
 
     })
     .catch(next);
 });
 
+//@TODO this needs to be refactored
 router.post('/restore/:id', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let { id } = req.params;
     let query = { 'id': id };
@@ -185,6 +193,7 @@ router.post('/restore/:id', (req: Request, res: Response, next: (...args:any[]) 
     .catch(next);
 });
 
+//@TODO this needs to be refactored
 router.post('/purge', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let query = { 'deleted': true };
     let promise = Requirement.remove(query);
@@ -195,6 +204,7 @@ router.post('/purge', (req: Request, res: Response, next: (...args:any[]) => voi
     .catch(next);
 });
 
+//@TODO this needs to be refactored
 router.post('/purge/:id', (req: Request, res: Response, next: (...args:any[]) => void) => {
     let { id } = req.params;
     let query = { 'id': id, 'deleted': true };

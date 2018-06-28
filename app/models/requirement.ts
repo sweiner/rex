@@ -10,6 +10,10 @@ export interface IRequirementModel extends IRequirement, Document {
 
 }
 
+export function simplify_requirement(requirement:IRequirementModel): Object {
+    return {"id":requirement.id, "data":requirement.data}
+}
+
 const RequirementSchema: Schema = new Schema({
     id: { type: String, index: true, unique: true },
     history: [{type: Schema.Types.ObjectId, ref:'History'}],

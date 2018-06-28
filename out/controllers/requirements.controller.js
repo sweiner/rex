@@ -16,7 +16,7 @@ router.get('/browse', (req, res, next) => {
     let promise = requirement_1.Requirement.find();
     promise.then((requirements) => {
         let simplified = requirements.map(requirement => {
-            return { "id": requirement.id, "data": requirement.data };
+            return requirement_1.simplify_requirement(requirement);
         });
         return res.json(simplified);
     })
@@ -28,7 +28,11 @@ router.get('/browse/:id', (req, res, next) => {
     // Create an async request to find a particular requirement by reqid
     let promise = requirement_1.Requirement.findOne({ id: id });
     promise.then((requirement) => {
-        return res.json(requirement);
+        if (requirement === null) {
+            throw new Error("Requirement does not exist!");
+        }
+        let simplified = requirement_1.simplify_requirement(requirement);
+        return res.json(simplified);
     })
         .catch(next);
 });
@@ -61,7 +65,8 @@ router.post('/add/:id', jsonParser, (req, res, next) => {
         }
         requirement.history.push(history._id);
         requirement.save();
-        return res.json(requirement);
+        let simplified = requirement_1.simplify_requirement(requirement);
+        return res.json(simplified);
     })
         .catch(next);
 });
@@ -85,16 +90,17 @@ router.post('/edit/:id', jsonParser, (req, res, next) => {
         // Then save the new requirement
         .then((results) => {
         let requirement = results[0];
-        let hist = results[1];
+        let history = results[1];
         if (!requirement) {
             throw new Error(id + 'does not exist!');
         }
         else if (requirement.history === undefined || requirement.data === undefined) {
             throw new Error('Error creating document history');
         }
-        requirement.history.push(hist._id);
+        requirement.history.push(history._id);
         requirement.save();
-        return res.json(requirement);
+        let simplified = requirement_1.simplify_requirement(requirement);
+        return res.json(simplified);
     })
         .catch(next);
 });
@@ -136,10 +142,12 @@ router.post('/delete/:id', (req, res, next) => {
         }
         requirement.history.push(history._id);
         requirement.save();
-        return res.json(requirement);
+        let simplified = requirement_1.simplify_requirement(requirement);
+        return res.json(simplified);
     })
         .catch(next);
 });
+//@TODO this needs to be refactored
 router.post('/restore/:id', (req, res, next) => {
     let { id } = req.params;
     let query = { 'id': id };
@@ -149,6 +157,7 @@ router.post('/restore/:id', (req, res, next) => {
     })
         .catch(next);
 });
+//@TODO this needs to be refactored
 router.post('/purge', (req, res, next) => {
     let query = { 'deleted': true };
     let promise = requirement_1.Requirement.remove(query);
@@ -157,6 +166,7 @@ router.post('/purge', (req, res, next) => {
     })
         .catch(next);
 });
+//@TODO this needs to be refactored
 router.post('/purge/:id', (req, res, next) => {
     let { id } = req.params;
     let query = { 'id': id, 'deleted': true };
