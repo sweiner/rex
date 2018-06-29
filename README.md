@@ -9,5 +9,3 @@ Requirements Management
 5. run `npm start` from within the project directory
    * This will start `mongod`, `nodemon`, and `tsc --watch` automatically.
    * By default, the server will be located at http://localhost:3000
-
-## Example

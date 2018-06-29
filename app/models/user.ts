@@ -3,7 +3,7 @@
  * Licensed under AGPL V3.0.  See LICENSE file for details.
  */
 
-import { Document, Schema, Model, model} from "mongoose";
+import { Document, Schema, Model, model } from "mongoose";
 
 interface IUser {
   email?: string;

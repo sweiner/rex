@@ -4,11 +4,15 @@
   "description": "A requirements management backend",
   "main": "server.js",
   "scripts": {
-    "start": "start \"rex-mongod\" mongod && start \"rex-nodemon\" nodemon ./out/server.js && start \"rex-tsc\" tsc --watch",
-    "stop": "taskkill /FI \"WINDOWTITLE eq rex-mongod*\" && taskkill /FI \"WINDOWTITLE eq rex-nodemon*\" && taskkill /FI \"WINDOWTITLE eq rex-tsc*\"",
-    "pretest": "tsc",
-    "test": "start \"rex-mongod\" mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" && taskkill /FI \"WINDOWTITLE eq rex-mongod*\" > NUL || taskkill /FI \"WINDOWTITLE eq rex-mongod*\" > NUL",
-    "tsc": "tsc"
+    "start": "npm run build && npm run watch",
+    "build": "npm run build-ts && npm run tslint && npm run copy-static-assets",
+    "serve": "node out/server.js",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"Mongo,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"mongod\" \"npm run watch-ts\" \"nodemon out/server.js\"",
+    "test": "jest --forceExit",
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w",
+    "tslint": "tslint -c tslint.json -p tsconfig.json",
+    "copy-static-assets": "node scripts/copyStaticAssets.js"
   },
   "author": "Scott Weiner",
   "license": "AGPL 3.0",
@@ -17,8 +21,8 @@
     "express": "^4.16.3",
     "mongoose": "^5.1.0",
     "npm": "^6.1.0",
-    "pug": "^2.0.3",
-    "rfc6902": "^2.2.2"
+    "rfc6902": "^2.2.2",
+    "swagger-ui-express": "^3.0.10"
   },
   "devDependencies": {
     "@types/chai": "^4.1.3",
@@ -27,13 +31,16 @@
     "@types/mongodb": "^3.0.18",
     "@types/mongoose": "^5.0.13",
     "@types/node": "^10.0.8",
-    "@types/pug": "^2.0.4",
     "@types/request": "^2.47.0",
+    "@types/swagger-ui-express": "^3.0.0",
     "chai": "^4.1.2",
+    "concurrently": "^3.6.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.17.5",
     "request": "^2.87.0",
+    "shelljs": "^0.8.2",
     "ts-node": "^6.0.5",
+    "tslint": "^5.10.0",
     "typescript": "^2.8.3"
   }
 }

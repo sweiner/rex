@@ -17,12 +17,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Import everything from express and assign it to the express variable
 const express_1 = __importDefault(require("express"));
 const db = __importStar(require("./db"));
+const swagger = __importStar(require("swagger-ui-express"));
+const api_doc = __importStar(require("./docs/api.json"));
 // Import WelcomeController from controllers entry point
 const controllers_1 = require("./controllers");
 const controllers_2 = require("./controllers");
 // Local functions
 function normalizePort(val) {
-    let port = (typeof val === 'string') ? parseInt(val, 10) : val;
+    const port = (typeof val === "string") ? parseInt(val, 10) : val;
     if (isNaN(port))
         return val;
     else if (port >= 0)
@@ -43,46 +45,45 @@ let connections = [];
 // been established before trying to access elements
 function startServer(database) {
     // Connect to Mongo
-    let promise = db.connect(database);
-    // Set application level options
-    app.set('view engine', 'pug');
+    const promise = db.connect(database);
     // Attach controllers to the application
-    app.use('/', controllers_1.WelcomeController);
-    app.use('/users', controllers_2.UsersController);
-    app.use('/requirements', controllers_1.RequirementsController);
-    app.use('/history', controllers_1.HistoryController);
+    app.use("/", controllers_1.WelcomeController);
+    app.use("/api", swagger.serve, swagger.setup(api_doc));
+    app.use("/users", controllers_2.UsersController);
+    app.use("/requirements", controllers_1.RequirementsController);
+    app.use("/history", controllers_1.HistoryController);
     // Define error handling middleware
     app.use(function (err, req, res, next) {
         console.log(err.stack);
         if (res.statusCode < 400) {
             res.status(500);
         }
-        res.json({ 'error': err.message || 'An unspecified error has occrred' });
+        res.json({ "error": err.message || "An unspecified error has occrred" });
         next();
     });
     // Serve the application at the given port
     server = app.listen(exports.port, () => {
         // Success callback
-        //console.log(`Listening at http://localhost:${port}/`);
+        // console.log(`Listening at http://localhost:${port}/`);
     });
-    server.on('connection', connection => {
+    server.on("connection", connection => {
         connections.push(connection);
-        connection.on('close', () => connections = connections.filter(curr => curr !== connection));
+        connection.on("close", () => connections = connections.filter(curr => curr !== connection));
     });
     return promise;
 }
 exports.startServer = startServer;
 function stopServer() {
     if (server) {
-        console.log('Received kill signal, shutting down gracefully');
-        console.log('Disconnecting from MongoDB...');
+        console.log("Received kill signal, shutting down gracefully");
+        console.log("Disconnecting from MongoDB...");
         db.disconnect();
         server.close(() => {
-            console.log('Closed out remaining connections');
+            console.log("Closed out remaining connections");
             process.exit(0);
         });
         setTimeout(() => {
-            console.error('Could not close connections in time, forcefully shutting down');
+            console.error("Could not close connections in time, forcefully shutting down");
             process.exit(1);
         }, 10000);
         connections.forEach(curr => curr.end());
@@ -91,13 +92,13 @@ function stopServer() {
 }
 exports.stopServer = stopServer;
 // Handle Abrupt server shutdowns
-process.on('SIGTERM', stopServer);
-process.on('SIGINT', stopServer);
+process.on("SIGTERM", stopServer);
+process.on("SIGINT", stopServer);
 // Start the server when the app is run directly
 if (require.main === module) {
-    let promise = startServer();
+    const promise = startServer();
     promise.catch((reason) => {
-        console.error('ERROR: Could not connect to MongoDB... Aborting');
+        console.error("ERROR: Could not connect to MongoDB... Aborting");
         process.exit(1);
     });
 }

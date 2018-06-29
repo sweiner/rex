@@ -7,18 +7,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const user_1 = require("../models/user");
 const router = express_1.Router();
-router.get('/', (req, res) => {
-    res.send('Hello');
+router.get("/", (req, res) => {
+    res.send("Hello");
 });
-router.post('/:name', (req, res) => {
-    let { name } = req.params;
+router.post("/:name", (req, res) => {
+    const { name } = req.params;
     user_1.User.findOne({ firstName: name }, (err, user) => {
         if (err) {
-            //return JSON.stringify(err);
-            res.send('Error');
+            res.send("Error");
         }
         if (user == null) {
-            let promise = user_1.User.create({ firstName: name });
+            const promise = user_1.User.create({ firstName: name });
             promise.then((user) => {
                 res.send(JSON.stringify(user));
             });
