@@ -17,6 +17,7 @@
     "express": "^4.16.3",
     "mongoose": "^5.1.0",
     "npm": "^6.1.0",
+    "pug": "^2.0.3",
     "rfc6902": "^2.2.2"
   },
   "devDependencies": {
@@ -26,6 +27,7 @@
     "@types/mongodb": "^3.0.18",
     "@types/mongoose": "^5.0.13",
     "@types/node": "^10.0.8",
+    "@types/pug": "^2.0.4",
     "@types/request": "^2.47.0",
     "chai": "^4.1.2",
     "mocha": "^5.2.0",

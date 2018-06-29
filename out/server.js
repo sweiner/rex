@@ -44,8 +44,10 @@ let connections = [];
 function startServer(database) {
     // Connect to Mongo
     let promise = db.connect(database);
-    // Mount the WelcomeController at the /welcome route
-    //app.use(bodyParser.json());
+    // Set application level options
+    app.set('view engine', 'pug');
+    // Attach controllers to the application
+    app.use('/', controllers_1.WelcomeController);
     app.use('/users', controllers_2.UsersController);
     app.use('/requirements', controllers_1.RequirementsController);
     app.use('/history', controllers_1.HistoryController);

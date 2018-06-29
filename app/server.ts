@@ -8,9 +8,10 @@ import express from 'express';
 import mongoose from 'mongoose';
 import * as http from 'http';
 import * as db from './db';
+import path from 'path'
 
 // Import WelcomeController from controllers entry point
-import { RequirementsController, HistoryController } from './controllers';
+import { RequirementsController, HistoryController, WelcomeController } from './controllers';
 import { UsersController } from './controllers';
 import { Socket } from 'net';
 
@@ -38,8 +39,11 @@ export function startServer(database?:string): Promise<typeof mongoose> {
     // Connect to Mongo
     let promise: Promise<typeof mongoose> = db.connect(database);
 
-    // Mount the WelcomeController at the /welcome route
-    //app.use(bodyParser.json());
+    // Set application level options
+    app.set('view engine','pug');
+
+    // Attach controllers to the application
+    app.use('/', WelcomeController);
     app.use('/users', UsersController);
     app.use('/requirements', RequirementsController);
     app.use('/history', HistoryController);

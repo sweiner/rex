@@ -16,15 +16,7 @@ const router: Router = Router();
 // In this case it's /welcome
 router.get('/', (req: Request, res: Response) => {
     // Reply with a hello world when no name param is provided
-    res.send('Hello, World!');
-});
-
-router.get('/:name', (req: Request, res: Response) => {
-    // Extract the name from the request parameters
-    let { name } = req.params;
-
-    //Greet the given name
-    res.send(`Hello, ${name}`);
+    res.render('welcome',{title:'Rex', message:'Welcome to Rex!'});
 });
 
 // Export the express.Router() instance to be used by server.ts
