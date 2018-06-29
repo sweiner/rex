@@ -1,4 +1,8 @@
-/* app/controllers/users.controller.ts */
+/*
+ * Copyright (c) 2018 Scott Weiner
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
+
 
 import {Router, Request, Response} from 'express';
 import {User} from '../models/user';

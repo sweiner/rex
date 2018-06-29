@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2018 Scott Weiner
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
+
 import * as mocha from 'mocha';
 import * as request from 'request';
 import * as chai from 'chai';

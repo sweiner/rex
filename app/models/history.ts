@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2018 Scott Weiner
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
+
 import { Document, Schema, Model, model } from 'mongoose';
 import { Operation } from 'rfc6902/diff';
 import * as rfc from 'rfc6902';

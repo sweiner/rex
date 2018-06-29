@@ -10,8 +10,8 @@
     "test": "start \"rex-mongod\" mongod && mocha --requre ts-node/register \"./out/tests/**/*.js\" && taskkill /FI \"WINDOWTITLE eq rex-mongod*\" > NUL || taskkill /FI \"WINDOWTITLE eq rex-mongod*\" > NUL",
     "tsc": "tsc"
   },
-  "author": "sweiner",
-  "license": "See License File",
+  "author": "Scott Weiner",
+  "license": "AGPL 3.0",
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.3",

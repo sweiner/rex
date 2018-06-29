@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2018 Scott Weiner
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
+
 /* app/controllers/welcome.controller.ts */
 
 // Import only what we need from express

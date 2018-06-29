@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2018 Scott Weiner
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
+
 // @TODO - add more robust processing on routes
 import { NextHandleFunction } from 'connect';
 import { Router, Request, Response } from 'express';

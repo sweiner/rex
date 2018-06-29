@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2018 ${author}
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
+
 import { Document, Schema, Model, model} from "mongoose";
 
 interface IUser {

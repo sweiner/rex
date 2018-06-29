@@ -1,4 +1,7 @@
-/* app/server.ts */
+/*
+ * Copyright (c) 2018 Scott Weiner
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
 
 // Import everything from express and assign it to the express variable
 import express from 'express';
