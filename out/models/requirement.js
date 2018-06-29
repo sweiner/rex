@@ -1,4 +1,8 @@
 "use strict";
+/*
+ * Copyright (c) 2018 ${author}
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 function simplify_requirement(requirement) {

@@ -1,6 +1,10 @@
 "use strict";
-/* app/controllers/welcome.controller.ts */
+/*
+ * Copyright (c) 2018 Scott Weiner
+ * Licensed under AGPL V3.0.  See LICENSE file for details.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
+/* app/controllers/welcome.controller.ts */
 // Import only what we need from express
 const express_1 = require("express");
 // Assign router to the express.Router() instance
