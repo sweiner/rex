@@ -16,7 +16,7 @@ const router: Router = Router();
 // In this case it"s /welcome
 router.get("/", (req: Request, res: Response) => {
     // Reply with a hello world when no name param is provided
-    res.redirect("/api");
+    res.redirect("/api-docs");
 });
 
 // Export the express.Router() instance to be used by server.ts

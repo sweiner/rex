@@ -17,11 +17,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Import everything from express and assign it to the express variable
 const express_1 = __importDefault(require("express"));
 const db = __importStar(require("./db"));
-const swagger = __importStar(require("swagger-ui-express"));
-const api_doc = __importStar(require("./docs/api.json"));
-// Import WelcomeController from controllers entry point
-const controllers_1 = require("./controllers");
-const controllers_2 = require("./controllers");
+const version_controller_1 = require("./v1/controllers/version.controller");
 // Local functions
 function normalizePort(val) {
     const port = (typeof val === "string") ? parseInt(val, 10) : val;
@@ -46,12 +42,9 @@ let connections = [];
 function startServer(database) {
     // Connect to Mongo
     const promise = db.connect(database);
-    // Attach controllers to the application
-    app.use("/", controllers_1.WelcomeController);
-    app.use("/api", swagger.serve, swagger.setup(api_doc));
-    app.use("/users", controllers_2.UsersController);
-    app.use("/requirements", controllers_1.RequirementsController);
-    app.use("/history", controllers_1.HistoryController);
+    // Attach version controllers
+    app.use("/", version_controller_1.Version1Controller);
+    app.use("/v1", version_controller_1.Version1Controller);
     // Define error handling middleware
     app.use(function (err, req, res, next) {
         console.log(err.stack);

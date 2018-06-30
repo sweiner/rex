@@ -8,13 +8,10 @@ import express from "express";
 import mongoose from "mongoose";
 import * as http from "http";
 import * as db from "./db";
-import * as swagger from "swagger-ui-express";
-import * as api_doc from "./docs/api.json";
 
 // Import WelcomeController from controllers entry point
-import { RequirementsController, HistoryController, WelcomeController } from "./controllers";
-import { UsersController } from "./controllers";
 import { Socket } from "net";
+import { Version1Controller } from "./v1/controllers/version.controller";
 
 // Local functions
 function normalizePort(val: number | string): number | string | boolean {
@@ -40,12 +37,9 @@ export function startServer(database?: string): Promise<typeof mongoose> {
     // Connect to Mongo
     const promise: Promise<typeof mongoose> = db.connect(database);
 
-    // Attach controllers to the application
-    app.use("/", WelcomeController);
-    app.use("/api", swagger.serve, swagger.setup(api_doc));
-    app.use("/users", UsersController);
-    app.use("/requirements", RequirementsController);
-    app.use("/history", HistoryController);
+    // Attach version controllers
+    app.use("/", Version1Controller);
+    app.use("/v1", Version1Controller);
 
     // Define error handling middleware
     app.use(function(err: Error, req: express.Request, res: express.Response, next: ((value?: any) => void)) {
