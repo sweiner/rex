@@ -50,6 +50,12 @@ router.put('/:id', jsonParser, (req: Request, res: Response, next: (...args: any
     const { id } = req.params;
     const conditions = { 'id': id };
     const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne(conditions);
+
+    if (!req.body.data) {
+        res.status(HttpStatus.BAD_REQUEST);
+        throw new Error('Data field missing from requirement body');
+    }
+
     const req_promise: Promise<IRequirementModel | null> = query.exec();
 
     // Create the new requirement if it does not exist
@@ -128,7 +134,7 @@ router.delete('/:id', (req: Request, res: Response, next: (...args: any[]) => vo
     req_promise.then((requirement) => {
         if (!requirement) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error(id + 'does not exist!');
+            throw new Error(id + ' does not exist!');
         }
         else if (requirement.history === undefined || requirement.data === undefined) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -151,35 +157,23 @@ router.delete('/:id', (req: Request, res: Response, next: (...args: any[]) => vo
         requirement.history!.push(history._id);
         requirement.save();
 
-        return res.sendStatus(HttpStatus.ACCEPTED);
+        return res.sendStatus(HttpStatus.NO_CONTENT);
 
     })
     .catch(next);
 });
 
-// @TODO this needs to be refactored
-router.post('/purge', (req: Request, res: Response, next: (...args: any[]) => void) => {
-    const query = { 'deleted': true };
-    const promise = Requirement.remove(query);
+// @TODO this needs to be an admin interface
+// @TODO it also needs to clean up the history items associated with a requirement
+// router.post('/purge', (req: Request, res: Response, next: (...args: any[]) => void) => {
+//     const query = { 'data': {} };
+//     const promise = Requirement.remove(query);
 
-    promise.then((requirement) => {
-        return res.json(requirement);
-    })
-    .catch(next);
-});
-
-// @TODO this needs to be refactored
-router.post('/purge/:id', (req: Request, res: Response, next: (...args: any[]) => void) => {
-    const { id } = req.params;
-    const query = { 'id': id, 'deleted': true };
-
-    const promise = Requirement.findOneAndRemove(query);
-
-    promise.then((requirement) => {
-        return res.json(requirement);
-    })
-    .catch(next);
-});
+//     promise.then((requirement) => {
+//         return res.sendStatus(HttpStatus.NO_CONTENT);
+//     })
+//     .catch(next);
+// });
 
 // Export the express.Router() instance to be used by server.ts
 export const RequirementsController: Router = router;

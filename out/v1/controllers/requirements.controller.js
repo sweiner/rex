@@ -50,6 +50,10 @@ router.put('/:id', jsonParser, (req, res, next) => {
     const { id } = req.params;
     const conditions = { 'id': id };
     const query = requirement_1.Requirement.findOne(conditions);
+    if (!req.body.data) {
+        res.status(HttpStatus.BAD_REQUEST);
+        throw new Error('Data field missing from requirement body');
+    }
     const req_promise = query.exec();
     // Create the new requirement if it does not exist
     req_promise.then((requirement) => {
@@ -117,7 +121,7 @@ router.delete('/:id', (req, res, next) => {
     req_promise.then((requirement) => {
         if (!requirement) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error(id + 'does not exist!');
+            throw new Error(id + ' does not exist!');
         }
         else if (requirement.history === undefined || requirement.data === undefined) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -136,28 +140,19 @@ router.delete('/:id', (req, res, next) => {
         const history = results[1];
         requirement.history.push(history._id);
         requirement.save();
-        return res.sendStatus(HttpStatus.ACCEPTED);
+        return res.sendStatus(HttpStatus.NO_CONTENT);
     })
         .catch(next);
 });
-// @TODO this needs to be refactored
-router.post('/purge', (req, res, next) => {
-    const query = { 'deleted': true };
-    const promise = requirement_1.Requirement.remove(query);
-    promise.then((requirement) => {
-        return res.json(requirement);
-    })
-        .catch(next);
-});
-// @TODO this needs to be refactored
-router.post('/purge/:id', (req, res, next) => {
-    const { id } = req.params;
-    const query = { 'id': id, 'deleted': true };
-    const promise = requirement_1.Requirement.findOneAndRemove(query);
-    promise.then((requirement) => {
-        return res.json(requirement);
-    })
-        .catch(next);
-});
+// @TODO this needs to be an admin interface
+// @TODO it also needs to clean up the history items associated with a requirement
+// router.post('/purge', (req: Request, res: Response, next: (...args: any[]) => void) => {
+//     const query = { 'data': {} };
+//     const promise = Requirement.remove(query);
+//     promise.then((requirement) => {
+//         return res.sendStatus(HttpStatus.NO_CONTENT);
+//     })
+//     .catch(next);
+// });
 // Export the express.Router() instance to be used by server.ts
 exports.RequirementsController = router;
