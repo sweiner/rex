@@ -11,10 +11,10 @@ const express_1 = require("express");
 const router = express_1.Router();
 // The / here corresponds to the route that the welcome controller
 // is mounted on in the server.ts file
-// In this case it"s /welcome
-router.get("/", (req, res) => {
+// In this case it's /welcome
+router.get('/', (req, res) => {
     // Reply with a hello world when no name param is provided
-    res.redirect("/api-docs");
+    res.redirect('/api-docs');
 });
 // Export the express.Router() instance to be used by server.ts
 exports.WelcomeController = router;

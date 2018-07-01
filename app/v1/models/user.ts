@@ -3,7 +3,7 @@
  * Licensed under AGPL V3.0.  See LICENSE file for details.
  */
 
-import { Document, Schema, Model, model } from "mongoose";
+import { Document, Schema, Model, model } from 'mongoose';
 
 interface IUser {
   email?: string;
@@ -23,7 +23,7 @@ const UserSchema: Schema = new Schema({
 });
 
 UserSchema.methods.fullName = function(): string {
-  return (this.firstName.trim() + " " + this.lastName.trim());
+  return (this.firstName.trim() + ' ' + this.lastName.trim());
 };
 
-export const User: Model<IUserModel> = model<IUserModel>("User", UserSchema);
+export const User: Model<IUserModel> = model<IUserModel>('User', UserSchema);

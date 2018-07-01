@@ -1,0 +1,129 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Rex",
+    "description": "Requirements Management Server API.",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development Server"
+    }
+  ],
+  "paths": {
+    "/requirements/browse": {
+      "get": {
+        "summary": "Returns the complete list of requirement ids and data.",
+        "responses": {
+          "200": {
+            "description": "Returns an array of requirements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Requirement"
+                  },
+                  "example": [
+                    {
+                      "id": "LLR001",
+                      "data": {
+                        "Description": "Example Requirement 1"
+                      }
+                    },
+                    {
+                      "id": "LLR002",
+                      "data": {
+                        "Description": "Example Requirement 2",
+                        "Tracing": [
+                          "ex1.c",
+                          "ex2.c"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/requirements/browse/{id}": {
+      "get": {
+        "summary": "Returns the data for a given requirement ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The requirement ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a requirement object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Requirement"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Requirement": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "example": {
+          "id": "LLR001",
+          "data": {
+            "Description": "The main loop shall update at 10hz",
+            "Derived": true,
+            "Tracing": {
+              "Source_Files": [
+                "main.c",
+                "main.h"
+              ],
+              "Functions": [
+                "update",
+                "update10Hz"
+              ],
+              "Constants": "TEN_HZ",
+              "Test_Cases": [
+                {
+                  "test_rate_1.c": [
+                    "TC001",
+                    "TC002",
+                    "TC003"
+                  ]
+                },
+                {
+                  "test_rate_2.c": [
+                    "TC105",
+                    "TC106"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

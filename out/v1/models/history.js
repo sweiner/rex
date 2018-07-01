@@ -23,4 +23,4 @@ function create_patch(old_data, new_data) {
     return new_item;
 }
 exports.create_patch = create_patch;
-exports.History = mongoose_1.model("History", exports.HistorySchema);
+exports.History = mongoose_1.model('History', exports.HistorySchema);

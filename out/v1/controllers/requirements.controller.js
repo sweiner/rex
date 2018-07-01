@@ -23,32 +23,32 @@ const HttpStatus = __importStar(require("http-status-codes"));
 const router = express_1.Router();
 const jsonParser = body_parser_1.default.json();
 // @TODO modify the global browse to be efficient
-router.get("/browse", (req, res, next) => {
+router.get('/browse', (req, res, next) => {
     // Create an async request to obtain all of the requirements
-    const promise = requirement_1.Requirement.find({}, "id data").lean();
+    const promise = requirement_1.Requirement.find({}, 'id data').lean();
     promise.then((requirements) => {
         res.status(HttpStatus.OK);
         return res.json(requirements);
     })
         .catch(next);
 });
-router.get("/:id", (req, res, next) => {
+router.get('/:id', (req, res, next) => {
     // Extract the name from the request parameters
     const { id } = req.params;
     // Create an async request to find a particular requirement by reqid
-    const promise = requirement_1.Requirement.findOne({ id: id }, "id data").lean();
+    const promise = requirement_1.Requirement.findOne({ id: id }, 'id data').lean();
     promise.then((requirement) => {
         if (requirement === null) {
             res.status(HttpStatus.BAD_REQUEST);
-            throw new Error("Requirement does not exist!");
+            throw new Error('Requirement does not exist!');
         }
         return res.json(requirement);
     })
         .catch(next);
 });
-router.put("/:id", jsonParser, (req, res, next) => {
+router.put('/:id', jsonParser, (req, res, next) => {
     const { id } = req.params;
-    const conditions = { "id": id };
+    const conditions = { 'id': id };
     const query = requirement_1.Requirement.findOne(conditions);
     const req_promise = query.exec();
     // Create the new requirement if it does not exist
@@ -75,7 +75,7 @@ router.put("/:id", jsonParser, (req, res, next) => {
         else {
             if (requirement.data === undefined) {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-                throw new Error("Could not update requirement history.  Previous requirement data is undefined.");
+                throw new Error('Could not update requirement history.  Previous requirement data is undefined.');
             }
             // Get the patch data for any updates
             const patch = history_1.create_patch(requirement.data, req.body.data);
@@ -97,10 +97,10 @@ router.put("/:id", jsonParser, (req, res, next) => {
         // If there is a change to this requirement, then save it.  Otherwise, ignore the request.
         if (history !== null) {
             if (!requirement) {
-                throw new Error(id + "does not exist!");
+                throw new Error(id + 'does not exist!');
             }
             else if (requirement.history === undefined || requirement.data === undefined) {
-                throw new Error("Error creating document history");
+                throw new Error('Error creating document history');
             }
             requirement.history.push(history._id);
             requirement.save();
@@ -109,23 +109,23 @@ router.put("/:id", jsonParser, (req, res, next) => {
     })
         .catch(next);
 });
-router.delete("/:id", (req, res, next) => {
+router.delete('/:id', (req, res, next) => {
     const { id } = req.params;
-    const conditions = { "id": id };
+    const conditions = { 'id': id };
     const query = requirement_1.Requirement.findOne(conditions);
     const req_promise = query.exec();
     req_promise.then((requirement) => {
         if (!requirement) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error(id + "does not exist!");
+            throw new Error(id + 'does not exist!');
         }
         else if (requirement.history === undefined || requirement.data === undefined) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error("Error creating document history");
+            throw new Error('Error creating document history');
         }
         else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
             res.status(HttpStatus.BAD_REQUEST);
-            throw new Error("Requirement has already been deleted!");
+            throw new Error('Requirement has already been deleted!');
         }
         const hist_promise = history_1.History.create({ patch: history_1.create_patch(requirement.data, {}) });
         requirement.data = {};
@@ -141,8 +141,8 @@ router.delete("/:id", (req, res, next) => {
         .catch(next);
 });
 // @TODO this needs to be refactored
-router.post("/purge", (req, res, next) => {
-    const query = { "deleted": true };
+router.post('/purge', (req, res, next) => {
+    const query = { 'deleted': true };
     const promise = requirement_1.Requirement.remove(query);
     promise.then((requirement) => {
         return res.json(requirement);
@@ -150,9 +150,9 @@ router.post("/purge", (req, res, next) => {
         .catch(next);
 });
 // @TODO this needs to be refactored
-router.post("/purge/:id", (req, res, next) => {
+router.post('/purge/:id', (req, res, next) => {
     const { id } = req.params;
-    const query = { "id": id, "deleted": true };
+    const query = { 'id': id, 'deleted': true };
     const promise = requirement_1.Requirement.findOneAndRemove(query);
     promise.then((requirement) => {
         return res.json(requirement);

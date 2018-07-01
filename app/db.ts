@@ -3,10 +3,10 @@
  * Licensed under AGPL V3.0.  See LICENSE file for details.
  */
 
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 // @TODO this needs to be parameterized
-const dbURI = "mongodb://localhost/rex";
+const dbURI = 'mongodb://localhost/rex';
 
 // Create the database connection
 export function connect(database?: string): Promise<typeof mongoose> {
@@ -24,16 +24,16 @@ export function disconnect(): Promise<void> {
 
 // CONNECTION EVENTS
 // When successfully connected
-mongoose.connection.on("connected", function () {
-    // console.log("Mongoose default connection open");
+mongoose.connection.on('connected', function () {
+    // console.log('Mongoose default connection open');
 });
 
 // If the connection throws an error
-mongoose.connection.on("error", function (err) {
-    // console.log("Mongoose default connection error: " + err);
+mongoose.connection.on('error', function (err) {
+    // console.log('Mongoose default connection error: ' + err);
 });
 
 // When the connection is disconnected
-mongoose.connection.on("disconnected", function () {
-    // console.log("Mongoose default connection disconnected");
+mongoose.connection.on('disconnected', function () {
+    // console.log('Mongoose default connection disconnected');
 });

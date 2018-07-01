@@ -12,6 +12,6 @@ const UserSchema = new mongoose_1.Schema({
     lastName: String
 });
 UserSchema.methods.fullName = function () {
-    return (this.firstName.trim() + " " + this.lastName.trim());
+    return (this.firstName.trim() + ' ' + this.lastName.trim());
 };
-exports.User = mongoose_1.model("User", UserSchema);
+exports.User = mongoose_1.model('User', UserSchema);

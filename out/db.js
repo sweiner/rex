@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 // @TODO this needs to be parameterized
-const dbURI = "mongodb://localhost/rex";
+const dbURI = 'mongodb://localhost/rex';
 // Create the database connection
 function connect(database) {
     if (database === undefined) {
@@ -26,14 +26,14 @@ function disconnect() {
 exports.disconnect = disconnect;
 // CONNECTION EVENTS
 // When successfully connected
-mongoose_1.default.connection.on("connected", function () {
-    // console.log("Mongoose default connection open");
+mongoose_1.default.connection.on('connected', function () {
+    // console.log('Mongoose default connection open');
 });
 // If the connection throws an error
-mongoose_1.default.connection.on("error", function (err) {
-    // console.log("Mongoose default connection error: " + err);
+mongoose_1.default.connection.on('error', function (err) {
+    // console.log('Mongoose default connection error: ' + err);
 });
 // When the connection is disconnected
-mongoose_1.default.connection.on("disconnected", function () {
-    // console.log("Mongoose default connection disconnected");
+mongoose_1.default.connection.on('disconnected', function () {
+    // console.log('Mongoose default connection disconnected');
 });

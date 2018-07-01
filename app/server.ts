@@ -4,18 +4,18 @@
  */
 
 // Import everything from express and assign it to the express variable
-import express from "express";
-import mongoose from "mongoose";
-import * as http from "http";
-import * as db from "./db";
+import express from 'express';
+import mongoose from 'mongoose';
+import * as http from 'http';
+import * as db from './db';
 
 // Import WelcomeController from controllers entry point
-import { Socket } from "net";
-import { Version1Controller } from "./v1/controllers/version.controller";
+import { Socket } from 'net';
+import { Version1Controller } from './v1/controllers/version.controller';
 
 // Local functions
 function normalizePort(val: number | string): number | string | boolean {
-    const port: number = (typeof val === "string") ? parseInt(val, 10) : val;
+    const port: number = (typeof val === 'string') ? parseInt(val, 10) : val;
     if (isNaN(port)) return val;
     else if (port >= 0) return port;
     else return false;
@@ -38,8 +38,8 @@ export function startServer(database?: string): Promise<typeof mongoose> {
     const promise: Promise<typeof mongoose> = db.connect(database);
 
     // Attach version controllers
-    app.use("/", Version1Controller);
-    app.use("/v1", Version1Controller);
+    app.use('/', Version1Controller);
+    app.use('/v1', Version1Controller);
 
     // Define error handling middleware
     app.use(function(err: Error, req: express.Request, res: express.Response, next: ((value?: any) => void)) {
@@ -47,7 +47,7 @@ export function startServer(database?: string): Promise<typeof mongoose> {
         if (res.statusCode < 400) {
             res.status(500);
         }
-        res.json({"error": err.message || "An unspecified error has occrred"});
+        res.json({'error': err.message || 'An unspecified error has occrred'});
         next();
     });
 
@@ -57,9 +57,9 @@ export function startServer(database?: string): Promise<typeof mongoose> {
         // console.log(`Listening at http://localhost:${port}/`);
     });
 
-    server.on("connection", connection => {
+    server.on('connection', connection => {
         connections.push(connection);
-        connection.on("close", () => connections = connections.filter(curr => curr !== connection));
+        connection.on('close', () => connections = connections.filter(curr => curr !== connection));
     });
 
     return promise;
@@ -67,16 +67,16 @@ export function startServer(database?: string): Promise<typeof mongoose> {
 
 export function stopServer() {
     if (server) {
-        console.log("Received kill signal, shutting down gracefully");
-        console.log("Disconnecting from MongoDB...");
+        console.log('Received kill signal, shutting down gracefully');
+        console.log('Disconnecting from MongoDB...');
         db.disconnect();
         server.close(() => {
-            console.log("Closed out remaining connections");
+            console.log('Closed out remaining connections');
             process.exit(0);
         });
 
         setTimeout(() => {
-            console.error("Could not close connections in time, forcefully shutting down");
+            console.error('Could not close connections in time, forcefully shutting down');
             process.exit(1);
         }, 10000);
 
@@ -86,15 +86,15 @@ export function stopServer() {
 }
 
 // Handle Abrupt server shutdowns
-process.on("SIGTERM", stopServer);
-process.on("SIGINT", stopServer);
+process.on('SIGTERM', stopServer);
+process.on('SIGINT', stopServer);
 
 // Start the server when the app is run directly
 if (require.main === module) {
     const promise = startServer();
 
     promise.catch((reason) => {
-        console.error("ERROR: Could not connect to MongoDB... Aborting");
+        console.error('ERROR: Could not connect to MongoDB... Aborting');
         process.exit(1);
     });
 }

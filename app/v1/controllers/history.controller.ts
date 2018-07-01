@@ -3,13 +3,13 @@
  * Licensed under AGPL V3.0.  See LICENSE file for details.
  */
 
-import { Router, Request, Response } from "express";
+import { Router, Request, Response } from 'express';
 
 // Assign router to the express.Router() instance
 const router: Router = Router();
 
 // Display all history for a given requirement
-router.get("/:id", (req: Request, res: Response) => {
+router.get('/:id', (req: Request, res: Response) => {
 
 });
 
