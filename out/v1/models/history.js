@@ -17,7 +17,9 @@ exports.HistorySchema = new mongoose_1.Schema({ log: String, patch: [mongoose_1.
 function create_patch(old_data, new_data) {
     let new_item;
     new_item = rfc.createPatch(new_data, old_data);
-    console.log(new_item);
+    if (new_item.length == 0) {
+        return null;
+    }
     return new_item;
 }
 exports.create_patch = create_patch;

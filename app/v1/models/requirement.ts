@@ -3,7 +3,7 @@
  * Licensed under AGPL V3.0.  See LICENSE file for details.
  */
 
-import { Document, Schema, Model, Query, model } from "mongoose";
+import { Document, Schema, Model, model } from "mongoose";
 
 interface IRequirement {
     reqid?: string;
@@ -13,10 +13,6 @@ interface IRequirement {
 
 export interface IRequirementModel extends IRequirement, Document {
 
-}
-
-export function simplify_requirement(requirement: IRequirementModel): Object {
-    return {"id": requirement.id, "data": requirement.data};
 }
 
 const RequirementSchema: Schema = new Schema({

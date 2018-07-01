@@ -6,10 +6,11 @@
 // @TODO - add more robust processing on routes
 import { NextHandleFunction } from "connect";
 import { Router, Request, Response } from "express";
-import { Requirement, IRequirementModel, simplify_requirement } from "../models/requirement";
+import { Requirement, IRequirementModel } from "../models/requirement";
 import { History, create_patch, IHistoryModel } from "../models/history";
+import { Schema, DocumentQuery } from "mongoose";
 import bodyParser from "body-parser";
-import { Schema, Mongoose } from "mongoose";
+import * as HttpStatus from "http-status-codes";
 
 // Assign router to the express.Router() instance
 const router: Router = Router();
@@ -18,126 +19,101 @@ const jsonParser: NextHandleFunction = bodyParser.json();
 // @TODO modify the global browse to be efficient
 router.get("/browse", (req: Request, res: Response, next: (...args: any[]) => void) => {
     // Create an async request to obtain all of the requirements
-    const promise = Requirement.find();
+    const promise = Requirement.find({}, "id data").lean();
 
     promise.then((requirements) => {
-
-        const simplified = requirements.map(requirement => {
-            return simplify_requirement(requirement);
-        });
-
-        return res.json(simplified);
+        res.status(HttpStatus.OK);
+        return res.json(requirements);
     })
     .catch(next);
 });
 
-router.get("/browse/:id", (req: Request, res: Response, next: (...args: any[]) => void) => {
+router.get("/:id", (req: Request, res: Response, next: (...args: any[]) => void) => {
     // Extract the name from the request parameters
     const { id } = req.params;
 
     // Create an async request to find a particular requirement by reqid
-    const promise = Requirement.findOne({id: id});
+    const promise = Requirement.findOne({id: id}).lean();
 
     promise.then((requirement) => {
-        if (requirement === null) { throw new Error ("Requirement does not exist!"); }
-        const simplified = simplify_requirement(requirement);
-        return res.json(simplified);
+        if (requirement === null) {
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error ("Requirement does not exist!");
+        }
+
+        return res.json(requirement);
     })
     .catch(next);
 });
 
-router.post("/add/:id", jsonParser, (req: Request, res: Response, next: (...args: any[]) => void) => {
+router.put("/:id", jsonParser, (req: Request, res: Response, next: (...args: any[]) => void) => {
     const { id } = req.params;
+    const conditions = { "id": id };
+    const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne(conditions);
+    const req_promise: Promise<IRequirementModel | null> = query.exec();
 
-    if (req.body.data === undefined) {
-        res.status(400);
-        throw new Error("{data} field in the Requirement body is undefined!");
-    }
-
-    const req_promise: Promise<IRequirementModel> = Requirement.create({id: id, data: req.body.data, deleted: false});
-
-    req_promise.then((requirement) => {
-        // Create a new history item
-        if (!requirement) {
-            throw new Error(id + "does not exist!");
-        }
-        else if (requirement.history === undefined || requirement.data === undefined) {
-            throw new Error("Error creating document history");
-        }
-
-        const hist_promise: Promise<IHistoryModel> = History.create({patch: {}, log: req.body.log});
-        return Promise.all([requirement, hist_promise]);
-    })
-    .then((results) => {
-        const requirement: IRequirementModel = results[0];
-        const history: IHistoryModel = results[1];
-
-        if (!requirement) {
-            throw new Error(id + "does not exist!");
-        }
-        else if (requirement.history === undefined || requirement.data === undefined) {
-            throw new Error("Error creating document history");
-        }
-
-        requirement.history.push(history._id);
-        requirement.save();
-
-        const simplified = simplify_requirement(requirement);
-        return res.json(simplified);
-    })
-    .catch(next);
-});
-
-router.post("/edit/:id", jsonParser, (req: Request, res: Response, next: (...args: any[]) => void) => {
-    const { id } = req.params;
-    const query = { "id": id };
-
-    const req_promise = Requirement.findOne(query);
-
-    // Create the history entry
+    // Create the new requirement if it does not exist
     req_promise.then((requirement) => {
         if (!requirement) {
-            throw new Error(id + "does not exist!");
+            // Returns the updated requirement document if newly created
+            res.status(HttpStatus.CREATED);
+            const create_promise = Requirement.create({id: id, data: req.body.data});
+            return create_promise;
         }
-        else if (requirement.history === undefined || requirement.data === undefined) {
-            throw new Error("Error creating document history");
+        else {
+            // Returns the old requirement document if modifications are needed
+            res.status(HttpStatus.OK);
+            return requirement;
         }
+    })
+    // Create the history record
+    .then((requirement) => {
+        let hist_promise: Promise<IHistoryModel | null> | null = null;
 
-        // Create a new history item
-        const hist_promise: Promise<IHistoryModel> = History.create({patch: create_patch(requirement.data, req.body.data), log: req.body.log});
-        requirement.data = req.body.data;
+        if (res.statusCode == HttpStatus.CREATED) {
+            // The history for a new requirement will start off with a blank patch
+            hist_promise = History.create({patch: {}, log: req.body.log});
+        }
+        else {
+            if ( requirement.data === undefined ) {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new Error("Could not update requirement history.  Previous requirement data is undefined.");
+            }
+
+            // Get the patch data for any updates
+            const patch: any | null = create_patch(requirement.data, req.body.data);
+
+            // If there are no changes to this requirement, then do not update the model
+            if (patch === null) {
+                hist_promise = Promise.resolve(null);
+            }
+            else {
+                hist_promise = History.create({patch: patch});
+                requirement.data = req.body.data;
+            }
+        }
 
         return Promise.all([requirement, hist_promise]);
     })
-
-    // Then save the new requirement
+    // Then link history to the requirement and save
     .then((results) => {
         const requirement: IRequirementModel = results[0];
-        const history: IHistoryModel = results[1];
+        const history: IHistoryModel | null = results[1];
 
-        if (!requirement) {
-            throw new Error(id + "does not exist!");
+        // If there is a change to this requirement, then save it.  Otherwise, ignore the request.
+        if (history !== null) {
+            if (!requirement) {
+                throw new Error(id + "does not exist!");
+            }
+            else if (requirement.history === undefined || requirement.data === undefined) {
+                throw new Error("Error creating document history");
+            }
+
+            requirement.history.push(history._id);
+            requirement.save();
         }
-        else if (requirement.history === undefined || requirement.data === undefined) {
-            throw new Error("Error creating document history");
-        }
 
-        requirement.history.push(history._id);
-        requirement.save();
-
-        const simplified = simplify_requirement(requirement);
-        return res.json(simplified);
-    })
-    .catch(next);
-});
-
-// Developmental API
-router.post("/delete", (req: Request, res: Response, next: (...args: any[]) => void) => {
-    const query = {};
-    const promise = Requirement.updateMany(query, {deleted: true});
-
-    promise.then((requirements) => {
-        return res.json(requirements);
+        return res.sendStatus(res.statusCode);
     })
     .catch(next);
 });
@@ -168,14 +144,7 @@ router.post("/delete/:id", (req: Request, res: Response, next: (...args: any[]) 
         const requirement: IRequirementModel = results[0];
         const history: IHistoryModel = results[1];
 
-        if (!requirement) {
-            throw new Error(id + "does not exist!");
-        }
-        else if (requirement.history === undefined || requirement.data === undefined) {
-            throw new Error("Error creating document history");
-        }
-
-        requirement.history.push(history._id);
+        requirement.history!.push(history._id);
         requirement.save();
 
         const simplified = simplify_requirement(requirement);
