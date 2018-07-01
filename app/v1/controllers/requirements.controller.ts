@@ -9,6 +9,7 @@ import { Router, Request, Response } from 'express';
 import { Requirement, IRequirementModel } from '../models/requirement';
 import { History, create_patch, IHistoryModel } from '../models/history';
 import { Schema, DocumentQuery } from 'mongoose';
+import { HistoryController } from './history.controller';
 import bodyParser from 'body-parser';
 import * as HttpStatus from 'http-status-codes';
 
@@ -16,10 +17,13 @@ import * as HttpStatus from 'http-status-codes';
 const router: Router = Router();
 const jsonParser: NextHandleFunction = bodyParser.json();
 
+// Attach the history controller
+router.use('/history', HistoryController);
+
 // @TODO modify the global browse to be efficient
 router.get('/browse', (req: Request, res: Response, next: (...args: any[]) => void) => {
     // Create an async request to obtain all of the requirements
-    const promise = Requirement.find({}, 'id data').lean();
+    const promise = Requirement.find({}, 'name data -id').lean();
 
     promise.then((requirements) => {
         res.status(HttpStatus.OK);
@@ -28,27 +32,27 @@ router.get('/browse', (req: Request, res: Response, next: (...args: any[]) => vo
     .catch(next);
 });
 
-router.get('/:id', (req: Request, res: Response, next: (...args: any[]) => void) => {
+router.get('/:name', (req: Request, res: Response, next: (...args: any[]) => void) => {
     // Extract the name from the request parameters
-    const { id } = req.params;
+    const { name } = req.params;
 
-    // Create an async request to find a particular requirement by reqid
-    const promise = Requirement.findOne({id: id}, 'id data').lean();
+    // Create an async request to find a particular requirement by name
+    const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne({name: name}, 'name data -_id').lean();
+    query.exec();
 
-    promise.then((requirement) => {
+    query.then((requirement) => {
         if (requirement === null) {
             res.status(HttpStatus.BAD_REQUEST);
             throw new Error ('Requirement does not exist!');
         }
-
         return res.json(requirement);
     })
     .catch(next);
 });
 
-router.put('/:id', jsonParser, (req: Request, res: Response, next: (...args: any[]) => void) => {
-    const { id } = req.params;
-    const conditions = { 'id': id };
+router.put('/:name', jsonParser, (req: Request, res: Response, next: (...args: any[]) => void) => {
+    const { name } = req.params;
+    const conditions = { 'name': name };
     const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne(conditions);
 
     if (!req.body.data) {
@@ -63,7 +67,7 @@ router.put('/:id', jsonParser, (req: Request, res: Response, next: (...args: any
         if (!requirement) {
             // Returns the updated requirement document if newly created
             res.status(HttpStatus.CREATED);
-            const create_promise = Requirement.create({id: id, data: req.body.data});
+            const create_promise = Requirement.create({name: name, data: req.body.data});
             return create_promise;
         }
         else {
@@ -94,7 +98,7 @@ router.put('/:id', jsonParser, (req: Request, res: Response, next: (...args: any
                 hist_promise = Promise.resolve(null);
             }
             else {
-                hist_promise = History.create({patch: patch});
+                hist_promise = History.create({patch: patch, log: req.body.log});
                 requirement.data = req.body.data;
             }
         }
@@ -109,13 +113,19 @@ router.put('/:id', jsonParser, (req: Request, res: Response, next: (...args: any
         // If there is a change to this requirement, then save it.  Otherwise, ignore the request.
         if (history !== null) {
             if (!requirement) {
-                throw new Error(id + 'does not exist!');
+                throw new Error(name + 'does not exist!');
             }
             else if (requirement.history === undefined || requirement.data === undefined) {
                 throw new Error('Error creating document history');
             }
 
+            // Push the history ID
             requirement.history.push(history._id);
+            // Update the history version number
+            history.version = (requirement.history.length - 1);
+
+            // Save both models
+            history.save();
             requirement.save();
         }
 
@@ -124,9 +134,9 @@ router.put('/:id', jsonParser, (req: Request, res: Response, next: (...args: any
     .catch(next);
 });
 
-router.delete('/:id', (req: Request, res: Response, next: (...args: any[]) => void) => {
-    const { id } = req.params;
-    const conditions = { 'id': id };
+router.delete('/:name', (req: Request, res: Response, next: (...args: any[]) => void) => {
+    const { name } = req.params;
+    const conditions = { 'name': name };
 
     const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne(conditions);
     const req_promise: Promise<IRequirementModel | null> = query.exec();
@@ -134,7 +144,7 @@ router.delete('/:id', (req: Request, res: Response, next: (...args: any[]) => vo
     req_promise.then((requirement) => {
         if (!requirement) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error(id + ' does not exist!');
+            throw new Error(name + ' does not exist!');
         }
         else if (requirement.history === undefined || requirement.data === undefined) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);

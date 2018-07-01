@@ -17,27 +17,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const requirement_1 = require("../models/requirement");
 const history_1 = require("../models/history");
+const history_controller_1 = require("./history.controller");
 const body_parser_1 = __importDefault(require("body-parser"));
 const HttpStatus = __importStar(require("http-status-codes"));
 // Assign router to the express.Router() instance
 const router = express_1.Router();
 const jsonParser = body_parser_1.default.json();
+// Attach the history controller
+router.use('/history', history_controller_1.HistoryController);
 // @TODO modify the global browse to be efficient
 router.get('/browse', (req, res, next) => {
     // Create an async request to obtain all of the requirements
-    const promise = requirement_1.Requirement.find({}, 'id data').lean();
+    const promise = requirement_1.Requirement.find({}, 'name data -id').lean();
     promise.then((requirements) => {
         res.status(HttpStatus.OK);
         return res.json(requirements);
     })
         .catch(next);
 });
-router.get('/:id', (req, res, next) => {
+router.get('/:name', (req, res, next) => {
     // Extract the name from the request parameters
-    const { id } = req.params;
-    // Create an async request to find a particular requirement by reqid
-    const promise = requirement_1.Requirement.findOne({ id: id }, 'id data').lean();
-    promise.then((requirement) => {
+    const { name } = req.params;
+    // Create an async request to find a particular requirement by name
+    const query = requirement_1.Requirement.findOne({ name: name }, 'name data -_id').lean();
+    query.exec();
+    query.then((requirement) => {
         if (requirement === null) {
             res.status(HttpStatus.BAD_REQUEST);
             throw new Error('Requirement does not exist!');
@@ -46,9 +50,9 @@ router.get('/:id', (req, res, next) => {
     })
         .catch(next);
 });
-router.put('/:id', jsonParser, (req, res, next) => {
-    const { id } = req.params;
-    const conditions = { 'id': id };
+router.put('/:name', jsonParser, (req, res, next) => {
+    const { name } = req.params;
+    const conditions = { 'name': name };
     const query = requirement_1.Requirement.findOne(conditions);
     if (!req.body.data) {
         res.status(HttpStatus.BAD_REQUEST);
@@ -60,7 +64,7 @@ router.put('/:id', jsonParser, (req, res, next) => {
         if (!requirement) {
             // Returns the updated requirement document if newly created
             res.status(HttpStatus.CREATED);
-            const create_promise = requirement_1.Requirement.create({ id: id, data: req.body.data });
+            const create_promise = requirement_1.Requirement.create({ name: name, data: req.body.data });
             return create_promise;
         }
         else {
@@ -88,7 +92,7 @@ router.put('/:id', jsonParser, (req, res, next) => {
                 hist_promise = Promise.resolve(null);
             }
             else {
-                hist_promise = history_1.History.create({ patch: patch });
+                hist_promise = history_1.History.create({ patch: patch, log: req.body.log });
                 requirement.data = req.body.data;
             }
         }
@@ -101,27 +105,32 @@ router.put('/:id', jsonParser, (req, res, next) => {
         // If there is a change to this requirement, then save it.  Otherwise, ignore the request.
         if (history !== null) {
             if (!requirement) {
-                throw new Error(id + 'does not exist!');
+                throw new Error(name + 'does not exist!');
             }
             else if (requirement.history === undefined || requirement.data === undefined) {
                 throw new Error('Error creating document history');
             }
+            // Push the history ID
             requirement.history.push(history._id);
+            // Update the history version number
+            history.version = (requirement.history.length - 1);
+            // Save both models
+            history.save();
             requirement.save();
         }
         return res.sendStatus(res.statusCode);
     })
         .catch(next);
 });
-router.delete('/:id', (req, res, next) => {
-    const { id } = req.params;
-    const conditions = { 'id': id };
+router.delete('/:name', (req, res, next) => {
+    const { name } = req.params;
+    const conditions = { 'name': name };
     const query = requirement_1.Requirement.findOne(conditions);
     const req_promise = query.exec();
     req_promise.then((requirement) => {
         if (!requirement) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error(id + ' does not exist!');
+            throw new Error(name + ' does not exist!');
         }
         else if (requirement.history === undefined || requirement.data === undefined) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR);

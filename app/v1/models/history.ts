@@ -8,6 +8,7 @@ import { Operation } from 'rfc6902/diff';
 import * as rfc from 'rfc6902';
 
 interface IHistory {
+    version?: number;
     log?: string;
     patch?: Operation[];
 }
@@ -17,7 +18,7 @@ export interface IHistoryModel extends IHistory, Document {
 }
 
 export const HistorySchema: Schema = new Schema(
-    { log: String, patch: [Schema.Types.Mixed] });
+    { version: Number, log: String, patch: [Schema.Types.Mixed] });
 
 export function create_patch(old_data: Schema.Types.Mixed, new_data: Schema.Types.Mixed): Operation[] | null {
     let new_item: Operation[];
@@ -27,6 +28,11 @@ export function create_patch(old_data: Schema.Types.Mixed, new_data: Schema.Type
         return null;
     }
     return new_item;
+}
+
+export function apply_patch(data: Schema.Types.Mixed, patch: Operation[]): Schema.Types.Mixed {
+    const patched: Schema.Types.Mixed = rfc.applyPatch(data, patch);
+    return data;
 }
 
 export const History: Model<IHistoryModel> = model<IHistoryModel>('History', HistorySchema);
