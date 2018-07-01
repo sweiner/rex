@@ -33,7 +33,7 @@ router.get("/:id", (req: Request, res: Response, next: (...args: any[]) => void)
     const { id } = req.params;
 
     // Create an async request to find a particular requirement by reqid
-    const promise = Requirement.findOne({id: id}).lean();
+    const promise = Requirement.findOne({id: id}, "id data").lean();
 
     promise.then((requirement) => {
         if (requirement === null) {
@@ -118,20 +118,24 @@ router.put("/:id", jsonParser, (req: Request, res: Response, next: (...args: any
     .catch(next);
 });
 
-router.post("/delete/:id", (req: Request, res: Response, next: (...args: any[]) => void) => {
+router.delete("/:id", (req: Request, res: Response, next: (...args: any[]) => void) => {
     const { id } = req.params;
-    const query = { "id": id };
+    const conditions = { "id": id };
 
-    const req_promise = Requirement.findOne(query);
+    const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne(conditions);
+    const req_promise: Promise<IRequirementModel | null> = query.exec();
 
     req_promise.then((requirement) => {
         if (!requirement) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             throw new Error(id + "does not exist!");
         }
         else if (requirement.history === undefined || requirement.data === undefined) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             throw new Error("Error creating document history");
         }
         else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
+            res.status(HttpStatus.BAD_REQUEST);
             throw new Error("Requirement has already been deleted!");
         }
 
@@ -147,21 +151,8 @@ router.post("/delete/:id", (req: Request, res: Response, next: (...args: any[]) 
         requirement.history!.push(history._id);
         requirement.save();
 
-        const simplified = simplify_requirement(requirement);
-        return res.json(simplified);
+        return res.sendStatus(HttpStatus.ACCEPTED);
 
-    })
-    .catch(next);
-});
-
-// @TODO this needs to be refactored
-router.post("/restore/:id", (req: Request, res: Response, next: (...args: any[]) => void) => {
-    const { id } = req.params;
-    const query = { "id": id };
-    const promise = Requirement.findOneAndUpdate(query, {deleted: false}, {new: true});
-
-    promise.then((requirement) => {
-        return res.json(requirement);
     })
     .catch(next);
 });
