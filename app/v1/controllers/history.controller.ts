@@ -4,12 +4,15 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { NextHandleFunction } from 'connect';
 import { Requirement, IRequirementModel } from '../models/requirement';
-import { apply_patch, IHistoryModel } from '../models/history';
+import { History, IHistoryModel, apply_patch } from '../models/history';
+import bodyParser from 'body-parser';
 import * as HttpStatus from 'http-status-codes';
 
 // Assign router to the express.Router() instance
 const router: Router = Router();
+const jsonParser: NextHandleFunction = bodyParser.json();
 
 
 // Display all history for a given requirement
@@ -65,6 +68,47 @@ router.get('/:name/:version', (req: Request, res: Response, next: (...args: any[
 
         const reconstructed_data_object = reconstructed_data.toObject();
         return res.json(reconstructed_data_object);
+    })
+    .catch(next);
+});
+
+// Update a log message
+router.put('/:name/:version/log', jsonParser, (req: Request, res: Response, next: (...args: any[]) => void) => {
+    const { name, version }: {name: string, version: number} = req.params;
+    const conditions = { 'name': name };
+
+    if (!req.body.log) {
+        res.status(HttpStatus.BAD_REQUEST);
+        throw new Error('Log field missing from body');
+    }
+
+    const query = Requirement.findOne(conditions).exec();
+
+    query.then((requirement) => {
+        if (!requirement) {
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error ('Requirement does not exist!');
+        }
+        else if (!requirement.history || !requirement.data) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new Error ('Error - Requirement data or history is corrupted!');
+        }
+        else if (version >= requirement.history.length) {
+            res.status(HttpStatus.BAD_REQUEST);
+            throw new Error ('Version ' + version.toString() + ' of ' + name + ' does not exist!');
+        }
+
+        const hist_promise: Promise<IHistoryModel | null> = History.findById(requirement.history[version]).exec();
+        return hist_promise;
+    })
+    .then((history) => {
+        if (!history) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new Error('Unable to locate ' + name + ' history for version ' + version );
+        }
+        history.log = req.body.log;
+        history.save();
+        return res.sendStatus(HttpStatus.OK);
     })
     .catch(next);
 });
