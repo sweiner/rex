@@ -29,3 +29,4 @@ function apply_patch(data, patch) {
 }
 exports.apply_patch = apply_patch;
 exports.History = mongoose_1.model('History', exports.HistorySchema);
+//# sourceMappingURL=history.js.map

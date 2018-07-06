@@ -9,7 +9,9 @@
 import { Router } from 'express';
 import { RequirementsController, HistoryController, WelcomeController } from '.';
 import * as swagger from 'swagger-ui-express';
-import * as api_doc from '../static/docs/api.json';
+
+// Requiring JSON file
+const api_doc = require('../static/docs/api.json');
 
 // Assign router to the express.Router() instance
 const router: Router = Router();

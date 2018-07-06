@@ -21,9 +21,9 @@ const jsonParser: NextHandleFunction = bodyParser.json();
 router.use('/history', HistoryController);
 
 // @TODO modify the global browse to be efficient
-router.get('/browse', (req: Request, res: Response, next: (...args: any[]) => void) => {
+router.get('/', (req: Request, res: Response, next: (...args: any[]) => void) => {
     // Create an async request to obtain all of the requirements
-    const promise = Requirement.find({}, 'name data -id').lean();
+    const promise = Requirement.find({}, 'name data -_id').lean();
 
     promise.then((requirements) => {
         res.status(HttpStatus.OK);

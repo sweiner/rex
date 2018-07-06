@@ -19,3 +19,4 @@ const RequirementSchema = new mongoose_1.Schema({
 }, { minimize: false });
 RequirementSchema.set('toObject', { transform: simplify });
 exports.Requirement = mongoose_1.model('Requirement', RequirementSchema);
+//# sourceMappingURL=requirement.js.map

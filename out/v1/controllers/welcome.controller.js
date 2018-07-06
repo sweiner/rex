@@ -18,3 +18,4 @@ router.get('/', (req, res) => {
 });
 // Export the express.Router() instance to be used by server.ts
 exports.WelcomeController = router;
+//# sourceMappingURL=welcome.controller.js.map

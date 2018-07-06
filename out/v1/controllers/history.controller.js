@@ -109,3 +109,4 @@ router.put('/:name/:version/log', jsonParser, (req, res, next) => {
 });
 // Export the express.Router() instance to be used by server.ts
 exports.HistoryController = router;
+//# sourceMappingURL=history.controller.js.map

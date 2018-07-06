@@ -26,9 +26,9 @@ const jsonParser = body_parser_1.default.json();
 // Attach the history controller
 router.use('/history', history_controller_1.HistoryController);
 // @TODO modify the global browse to be efficient
-router.get('/browse', (req, res, next) => {
+router.get('/', (req, res, next) => {
     // Create an async request to obtain all of the requirements
-    const promise = requirement_1.Requirement.find({}, 'name data -id').lean();
+    const promise = requirement_1.Requirement.find({}, 'name data -_id').lean();
     promise.then((requirements) => {
         res.status(HttpStatus.OK);
         return res.json(requirements);
@@ -165,3 +165,4 @@ router.delete('/:name', (req, res, next) => {
 // });
 // Export the express.Router() instance to be used by server.ts
 exports.RequirementsController = router;
+//# sourceMappingURL=requirements.controller.js.map

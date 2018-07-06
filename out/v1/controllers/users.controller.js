@@ -29,3 +29,4 @@ router.post('/:name', (req, res) => {
 });
 // Export the express.Router() instance to be used by server.ts
 exports.UsersController = router;
+//# sourceMappingURL=users.controller.js.map

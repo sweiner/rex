@@ -7,12 +7,42 @@
     "start": "npm run build && npm run watch",
     "build": "npm run build-ts && npm run tslint && npm run copy-static-assets",
     "serve": "node out/server.js",
-    "watch": "concurrently -k -p \"[{name}]\" -n \"Mongo,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"mongod\" \"npm run watch-ts\" \"nodemon out/server.js\"",
+    "pretest": "npm run build-ts",
     "test": "jest --forceExit",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"Mongo,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"mongod\" \"npm run watch-ts\" \"nodemon out/server.js\"",
     "build-ts": "tsc",
     "watch-ts": "tsc -w",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "copy-static-assets": "node scripts/copyStaticAssets.js"
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/app"
+    ],
+    "globals": {
+      "ts-jest": {
+        "skipBabel": true,
+        "enableTsDiagnostics": true
+      }
+    },
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node",
+      "tsx",
+      "jsx"
+    ],
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(ts|js)$",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/**/*.{ts,js}",
+      "!src/**/*.d.ts"
+    ]
   },
   "author": "Scott Weiner",
   "license": "AGPL 3.0",
@@ -27,19 +57,25 @@
   "devDependencies": {
     "@types/chai": "^4.1.3",
     "@types/express": "^4.11.1",
-    "@types/mocha": "^5.2.0",
+    "@types/http-status-codes": "^1.2.0",
+    "@types/jest": "^23.1.4",
     "@types/mongodb": "^3.0.18",
+    "@types/mongodb-memory-server": "^1.8.0",
     "@types/mongoose": "^5.0.13",
     "@types/node": "^10.0.8",
     "@types/request": "^2.47.0",
+    "@types/request-promise-native": "^1.0.15",
     "@types/swagger-ui-express": "^3.0.0",
     "chai": "^4.1.2",
     "concurrently": "^3.6.0",
     "http-status-codes": "^1.3.0",
-    "mocha": "^5.2.0",
+    "jest": "^23.2.0",
+    "mongodb-memory-server": "^1.9.0",
     "nodemon": "^1.17.5",
     "request": "^2.87.0",
+    "request-promise-native": "^1.0.5",
     "shelljs": "^0.8.2",
+    "ts-jest": "^23.0.0",
     "ts-node": "^6.0.5",
     "tslint": "^5.10.0",
     "typescript": "^2.8.3"
