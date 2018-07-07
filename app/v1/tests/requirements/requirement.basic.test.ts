@@ -9,6 +9,8 @@ import * as HttpStatus from 'http-status-codes';
 import { startServer, stopServer } from '../../../server';
 import MongodbMemoryServer from 'mongodb-memory-server';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
 const server_location = 'http://localhost:3000';
 let mongod: MongodbMemoryServer | null = null;
 const dbURI = 'mongodb://localhost/test';
