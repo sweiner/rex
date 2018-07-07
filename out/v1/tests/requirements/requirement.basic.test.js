@@ -26,6 +26,7 @@ const request = __importStar(require("request-promise-native"));
 const HttpStatus = __importStar(require("http-status-codes"));
 const server_1 = require("../../../server");
 const mongodb_memory_server_1 = __importDefault(require("mongodb-memory-server"));
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 const server_location = 'http://localhost:3000';
 let mongod = null;
 const dbURI = 'mongodb://localhost/test';
