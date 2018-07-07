@@ -124,7 +124,7 @@ describe('Requirement Creation', async () => {
 afterAll(async() => {
     await stopServer();
     if (mongod) {
-        mongod.stop();
+        await mongod.stop();
     }
 });
 

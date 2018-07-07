@@ -127,7 +127,7 @@ describe('Requirement Creation', () => __awaiter(this, void 0, void 0, function*
 afterAll(() => __awaiter(this, void 0, void 0, function* () {
     yield server_1.stopServer();
     if (mongod) {
-        mongod.stop();
+        yield mongod.stop();
     }
 }));
 // mocha.describe('Requirements Creation - Basic', function() {
@@ -204,4 +204,4 @@ afterAll(() => __awaiter(this, void 0, void 0, function* () {
 //         });
 //     });
 // });
-//# sourceMappingURL=requirement.basic.test.js.map
+//# sourceMappingURL=requirement.1.test.js.map

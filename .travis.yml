@@ -6,10 +6,15 @@ nodejs:
 cache:
   directories:
     - "node_modules"
+    - $HOME/.mongodb-binaries
 
 before_script:
   - npm run setup
   - npm run build
+  - npm install codecov -g
 
 script:
   - npm test
+
+after_success:
+  -codecov
