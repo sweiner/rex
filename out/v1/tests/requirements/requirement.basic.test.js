@@ -93,7 +93,7 @@ describe('Requirement Creation Robustness', () => {
     }));
 });
 describe('Requirement Creation', () => __awaiter(this, void 0, void 0, function* () {
-    test('Create a requirement', () => __awaiter(this, void 0, void 0, function* () {
+    test('Create a basic requirement', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
             uri: server_location + '/requirements/REQ001',
@@ -109,7 +109,7 @@ describe('Requirement Creation', () => __awaiter(this, void 0, void 0, function*
         const response = yield request.put(options);
         expect(response.statusCode).toBe(HttpStatus.CREATED);
     }));
-    test('Verify requirement data', () => __awaiter(this, void 0, void 0, function* () {
+    test('Verify requirement was created successfully', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
             uri: server_location + '/requirements/REQ001',
