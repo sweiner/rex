@@ -39,12 +39,12 @@ beforeAll(() => __awaiter(this, void 0, void 0, function* () {
         server_1.stopServer();
     }
 }));
-describe('These are basic tests for creating a single requirement', () => {
-    test('Get request on non-existing requirement', () => __awaiter(this, void 0, void 0, function* () {
+describe('Requirement Creation Robustness', () => {
+    test('Request a non-existing requirement', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
             uri: server_location + '/requirements/REQ001',
-            resolveWithFullResponse: true,
+            json: true
         };
         try {
             const response = yield request.get(options);
@@ -52,9 +52,77 @@ describe('These are basic tests for creating a single requirement', () => {
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body.error).toContain('Requirement does not exist');
+        }
+    }));
+    test('Create a requirement without data', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                name: 'Test Requirement'
+            },
+            json: true
+        };
+        try {
+            const response = yield request.put(options);
+            fail();
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body.error).toContain('Data field missing');
+        }
+    }));
+    test('Create a requirement with malformed data field', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                data: 'This should be an object'
+            },
+            json: true
+        };
+        try {
+            const response = yield request.put(options);
+            fail();
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body.error).toContain('Data field must contain an object');
         }
     }));
 });
+describe('Requirement Creation', () => __awaiter(this, void 0, void 0, function* () {
+    test('Create a requirement', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                data: {
+                    name: 'It doesnt matter what my name is',
+                    description: 'Behold, this is REQ001'
+                }
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const response = yield request.put(options);
+        expect(response.statusCode).toBe(HttpStatus.CREATED);
+    }));
+    test('Verify requirement data', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'GET',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const response = yield request.get(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.body.name).toBe('REQ001');
+        expect(response.body.data.name).toBe('It doesnt matter what my name is');
+        expect(response.body.data.description).toBe('Behold, this is REQ001');
+    }));
+}));
 afterAll(() => __awaiter(this, void 0, void 0, function* () {
     yield server_1.stopServer();
     if (mongod) {

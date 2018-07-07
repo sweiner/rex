@@ -57,7 +57,11 @@ router.put('/:name', jsonParser, (req: Request, res: Response, next: (...args: a
 
     if (!req.body.data) {
         res.status(HttpStatus.BAD_REQUEST);
-        throw new Error('Data field missing from requirement body');
+        throw new Error('Data field missing from requirement body.  See /api-docs for details');
+    }
+    else if (typeof(req.body.data) != 'object') {
+        res.status(HttpStatus.BAD_REQUEST);
+        throw new Error('Data field must contain an object.  See /api-docs for details');
     }
 
     const req_promise: Promise<IRequirementModel | null> = query.exec();

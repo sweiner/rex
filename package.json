@@ -4,6 +4,7 @@
   "description": "A requirements management backend",
   "main": "server.js",
   "scripts": {
+    "setup": "npm install",
     "start": "npm run build && npm run watch",
     "build": "npm run build-ts && npm run tslint && npm run copy-static-assets",
     "serve": "node out/server.js",
@@ -78,6 +79,7 @@
     "ts-jest": "^23.0.0",
     "ts-node": "^6.0.5",
     "tslint": "^5.10.0",
+    "typedoc": "^0.11.1",
     "typescript": "^2.8.3"
   }
 }

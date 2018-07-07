@@ -25,12 +25,12 @@ beforeAll( async () => {
     }
 });
 
-describe('These are basic tests for creating a single requirement', () => {
-    test('Get request on non-existing requirement', async () => {
+describe('Requirement Creation Robustness', () => {
+    test('Request a non-existing requirement', async () => {
         const options = {
             method: 'GET',
             uri: server_location + '/requirements/REQ001',
-            resolveWithFullResponse: true,
+            json: true
         };
 
         try {
@@ -39,9 +39,84 @@ describe('These are basic tests for creating a single requirement', () => {
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body.error).toContain('Requirement does not exist');
         }
     });
 
+    test('Create a requirement without data', async () => {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                name: 'Test Requirement'
+            },
+            json: true
+        };
+
+        try {
+            const response = await request.put(options);
+            fail();
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body.error).toContain('Data field missing');
+        }
+    });
+
+    test('Create a requirement with malformed data field', async () => {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                data: 'This should be an object'
+            },
+            json: true
+        };
+
+        try {
+            const response = await request.put(options);
+            fail();
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body.error).toContain('Data field must contain an object');
+        }
+    });
+});
+
+describe('Requirement Creation', async () => {
+    test('Create a basic requirement', async () => {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                data: {
+                    name: 'It doesnt matter what my name is',
+                    description: 'Behold, this is REQ001'
+                }
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        const response = await request.put(options);
+        expect(response.statusCode).toBe(HttpStatus.CREATED);
+    });
+
+    test('Verify requirement was created successfully', async () => {
+        const options = {
+            method: 'GET',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        const response = await request.get(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.body.name).toBe('REQ001');
+        expect(response.body.data.name).toBe('It doesnt matter what my name is');
+        expect(response.body.data.description).toBe('Behold, this is REQ001');
+    });
 });
 
 afterAll(async() => {
