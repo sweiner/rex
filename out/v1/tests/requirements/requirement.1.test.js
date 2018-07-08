@@ -120,7 +120,7 @@ describe('Test MongoDB Object Field Limitations', () => {
             fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
-            expect(err.response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
         }
     }));
     test('Create a requirement with a \'$\' in one of the data fields', () => __awaiter(this, void 0, void 0, function* () {
@@ -140,7 +140,7 @@ describe('Test MongoDB Object Field Limitations', () => {
             fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
-            expect(err.response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
         }
     }));
 });
