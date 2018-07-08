@@ -31,7 +31,12 @@ const server_location = 'http://localhost:3000';
 let mongod = null;
 const dbURI = 'mongodb://localhost/test';
 beforeAll(() => __awaiter(this, void 0, void 0, function* () {
-    mongod = new mongodb_memory_server_1.default();
+    const options = {
+        binary: {
+            version: '4.0.0'
+        }
+    };
+    mongod = new mongodb_memory_server_1.default(options);
     try {
         const uri = yield mongod.getConnectionString();
         yield server_1.startServer(uri);
@@ -49,11 +54,11 @@ describe('Requirement Creation Robustness', () => {
         };
         try {
             const response = yield request.get(options);
-            fail();
+            fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-            expect(err.response.body.error).toContain('Requirement does not exist');
+            expect(err.response.body).toHaveProperty('error');
         }
     }));
     test('Create a requirement without data', () => __awaiter(this, void 0, void 0, function* () {
@@ -67,11 +72,11 @@ describe('Requirement Creation Robustness', () => {
         };
         try {
             const response = yield request.put(options);
-            fail();
+            fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-            expect(err.response.body.error).toContain('Data field missing');
+            expect(err.response.body).toHaveProperty('error');
         }
     }));
     test('Create a requirement with malformed data field', () => __awaiter(this, void 0, void 0, function* () {
@@ -85,123 +90,161 @@ describe('Requirement Creation Robustness', () => {
         };
         try {
             const response = yield request.put(options);
-            fail();
+            fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-            expect(err.response.body.error).toContain('Data field must contain an object');
+            expect(err.response.body).toHaveProperty('error');
+        }
+    }));
+    describe('Test MongoDB Object Field Limitations', () => {
+        test('Create a requirement with a \'.\' in one of the data fields', () => __awaiter(this, void 0, void 0, function* () {
+            const options = {
+                method: 'PUT',
+                uri: server_location + '/requirements/REQ001',
+                body: {
+                    'data': {
+                        'description': 'This is now a different requirement',
+                        'trace': {
+                            'main.c': ['100', '200-250', '500'],
+                            'main.h': ['50']
+                        }
+                    }
+                },
+                resolveWithFullResponse: true,
+                json: true
+            };
+            try {
+                const response = yield request.put(options);
+                fail('We expected an error in the response, but did not get one');
+            }
+            catch (err) {
+                expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+                expect(err.response.body).toHaveProperty('error');
+            }
+        }));
+        test('Create a requirement with a \'$\' in one of the data fields', () => __awaiter(this, void 0, void 0, function* () {
+            const options = {
+                method: 'PUT',
+                uri: server_location + '/requirements/REQ001',
+                body: {
+                    'data': {
+                        '$bill': 'This is a bad field',
+                    }
+                },
+                resolveWithFullResponse: true,
+                json: true
+            };
+            try {
+                const response = yield request.put(options);
+                fail('We expected an error in the response, but did not get one');
+            }
+            catch (err) {
+                expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+                expect(err.response.body).toHaveProperty('error');
+            }
+        }));
+    });
+    describe('Requirement Creation', () => {
+        test('Create a basic requirement', () => __awaiter(this, void 0, void 0, function* () {
+            const options = {
+                method: 'PUT',
+                uri: server_location + '/requirements/REQ001',
+                body: {
+                    data: {
+                        name: 'It doesnt matter what my name is',
+                        description: 'Behold, this is REQ001'
+                    }
+                },
+                resolveWithFullResponse: true,
+                json: true
+            };
+            const response = yield request.put(options);
+            expect(response.statusCode).toBe(HttpStatus.CREATED);
+        }));
+        test('Verify requirement was created successfully', () => __awaiter(this, void 0, void 0, function* () {
+            const options = {
+                method: 'GET',
+                uri: server_location + '/requirements/REQ001',
+                resolveWithFullResponse: true,
+                json: true
+            };
+            const response = yield request.get(options);
+            expect(response.statusCode).toBe(HttpStatus.OK);
+            expect(response.body.name).toBe('REQ001');
+            expect(response.body.data.name).toBe('It doesnt matter what my name is');
+            expect(response.body.data.description).toBe('Behold, this is REQ001');
+        }));
+    });
+    describe('Requirement Editing', () => {
+        test('Verify we can edit an already existing requirement', () => __awaiter(this, void 0, void 0, function* () {
+            const options = {
+                method: 'PUT',
+                uri: server_location + '/requirements/REQ001',
+                body: {
+                    'data': {
+                        'description': 'This is now a different requirement',
+                        'trace': {
+                            'main.c': ['100', '200-250', '500'],
+                            'main.h': ['50']
+                        }
+                    }
+                },
+                resolveWithFullResponse: true,
+                json: true
+            };
+            const response = yield request.put(options);
+            expect(response.statusCode).toBe(HttpStatus.OK);
+        }));
+        test('Verify the edit was successful', () => __awaiter(this, void 0, void 0, function* () {
+            const options = {
+                method: 'GET',
+                uri: server_location + '/requirements/REQ001',
+                resolveWithFullResponse: true,
+                json: true
+            };
+            const expected_data = {
+                description: 'This is now a different requirement',
+                trace: {
+                    'main.c': ['100', '200-250', '500'],
+                    'main.h': ['50']
+                }
+            };
+            const response = yield request.get(options);
+            expect(response.statusCode).toBe(HttpStatus.OK);
+            expect(response.body.name).toBe('REQ001');
+            expect(response.body.data).toEqual(expected_data);
+        }));
+    });
+    // describe('Requirement Deletion', () => {
+    //     test('Verify we can delete an existing requirement', async () => {
+    //         const options = {
+    //             method: 'DELETE',
+    //             uri: server_location + '/requirements/REQ001',
+    //             resolveWithFullResponse: true,
+    //             json: true
+    //         };
+    //         const response = await request.delete(options);
+    //         expect(response.statusCode).toBe(HttpStatus.OK);
+    //     });
+    //     test('Verify requirement was deleted successfully', async () => {
+    //         const options = {
+    //             method: 'GET',
+    //             uri: server_location + '/requirements/REQ001',
+    //             resolveWithFullResponse: true,
+    //             json: true
+    //         };
+    //         const response = await request.delete(options);
+    //         expect(response.statusCode).toBe(HttpStatus.OK);
+    //         expect(response.body.name).toBe('REQ001');
+    //         expect(response.body.data).toEqual({});
+    //     });
+    // });
+    afterAll(() => __awaiter(this, void 0, void 0, function* () {
+        yield server_1.stopServer();
+        if (mongod) {
+            yield mongod.stop();
         }
     }));
 });
-describe('Requirement Creation', () => __awaiter(this, void 0, void 0, function* () {
-    test('Create a basic requirement', () => __awaiter(this, void 0, void 0, function* () {
-        const options = {
-            method: 'PUT',
-            uri: server_location + '/requirements/REQ001',
-            body: {
-                data: {
-                    name: 'It doesnt matter what my name is',
-                    description: 'Behold, this is REQ001'
-                }
-            },
-            resolveWithFullResponse: true,
-            json: true
-        };
-        const response = yield request.put(options);
-        expect(response.statusCode).toBe(HttpStatus.CREATED);
-    }));
-    test('Verify requirement was created successfully', () => __awaiter(this, void 0, void 0, function* () {
-        const options = {
-            method: 'GET',
-            uri: server_location + '/requirements/REQ001',
-            resolveWithFullResponse: true,
-            json: true
-        };
-        const response = yield request.get(options);
-        expect(response.statusCode).toBe(HttpStatus.OK);
-        expect(response.body.name).toBe('REQ001');
-        expect(response.body.data.name).toBe('It doesnt matter what my name is');
-        expect(response.body.data.description).toBe('Behold, this is REQ001');
-    }));
-}));
-afterAll(() => __awaiter(this, void 0, void 0, function* () {
-    yield server_1.stopServer();
-    if (mongod) {
-        yield mongod.stop();
-    }
-}));
-// mocha.describe('Requirements Creation - Basic', function() {
-//     mocha.before(function() {
-//         const promise = startServer(database);
-//         return promise.then((connection: any) => {
-//         })
-//         .catch((reason: any) => {
-//             console.error('ERROR: Could not connect to MongoDB... Aborting');
-//             process.exit(1);
-//         });
-//     });
-//     mocha.it('Should return an error when a non-existent requirement is accessed', function(done) {
-//         const req = request.get(server_location + '/requirements/REQ001', function(err, res, body) {
-//             chai.expect(res.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-//             done();
-//         });
-//     });
-//     mocha.it('Should return a created response when created', function(done) {
-//         const data = { data: 'This is a sample requirement' };
-//         const options: request.CoreOptions = {
-//             method: 'PUT',
-//             body: data,
-//             json: true
-//           };
-//         request.put(server_location + '/requirements/REQ001', options, function(err, res, body) {
-//             chai.expect(res.statusCode).to.equal(HttpStatus.CREATED);
-//             done();
-//         });
-//     });
-//     mocha.it('Should reject the creation of a new requirement with an ID that matches an existing one', function (done) {
-//         const data = { description: 'This is a sample requirement' };
-//         const options: request.CoreOptions = {
-//             method: 'POST',
-//             body: data,
-//             json: true
-//           };
-//         request.post(server_location + '/requirements/create/REQ001', options, function(err, res, body) {
-//             chai.expect(body.data).to.be.undefined;
-//             chai.expect(body.id).to.be.undefined;
-//             chai.expect(body._id).to.be.undefined;
-//             chai.expect(body.deleted).to.be.undefined;
-//             chai.expect(body.history).to.be.undefined;
-//             // Error params
-//             chai.expect(body.error.code).to.equal(11000);
-//             chai.expect(body.error.message).contains('duplicate key error');
-//             done();
-//         });
-//     });
-//     mocha.it('Should create a requirement with blank data if the body is empty', function (done) {
-//         const options: request.CoreOptions = {
-//             method: 'POST',
-//             json: true
-//           };
-//           const req = request.post(server_location + '/requirements/create/REQ002', options, function(err, res, body) {
-//             chai.expect(body.data).to.deep.equal({});
-//             chai.expect(body.id).to.equal('REQ002');
-//             chai.expect(body._id).to.exist;
-//             chai.expect(body.deleted).to.equal(false);
-//             chai.expect(body.history).to.have.length(1);
-//             done();
-//         });
-//     });
-//     mocha.after(function() {
-//         const promise = mongoose.connection.dropDatabase();
-//         promise.then((value) => {
-//             stopServer();
-//             return promise;
-//         })
-//         .catch ((reason) => {
-//             console.log(reason);
-//             stopServer();
-//             return promise;
-//         });
-//     });
-// });
 //# sourceMappingURL=requirement.1.test.js.map

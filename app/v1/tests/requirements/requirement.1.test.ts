@@ -16,7 +16,12 @@ let mongod: MongodbMemoryServer | null = null;
 const dbURI = 'mongodb://localhost/test';
 
 beforeAll( async () => {
-    mongod = new MongodbMemoryServer();
+    const options: any = {
+        binary: {
+            version: '4.0.0'
+        }
+    };
+    mongod = new MongodbMemoryServer(options);
 
     try {
         const uri = await mongod.getConnectionString();
@@ -37,7 +42,7 @@ describe('Requirement Creation Robustness', () => {
 
         try {
             const response = await request.get(options);
-            fail();
+            fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
@@ -57,7 +62,7 @@ describe('Requirement Creation Robustness', () => {
 
         try {
             const response = await request.put(options);
-            fail();
+            fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
@@ -77,7 +82,7 @@ describe('Requirement Creation Robustness', () => {
 
         try {
             const response = await request.put(options);
-            fail();
+            fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
@@ -86,7 +91,59 @@ describe('Requirement Creation Robustness', () => {
     });
 });
 
-describe('Requirement Creation', async () => {
+describe('Test MongoDB Object Field Limitations', () => {
+    test('Create a requirement with a \'.\' in one of the data fields', async () => {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                'data': {
+                    'description': 'This is now a different requirement',
+                    'trace': {
+                        'main.c': ['100', '200-250', '500'],
+                        'main.h': ['50']
+                    }
+                }
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        try {
+            const response = await request.put(options);
+            fail('We expected an error in the response, but did not get one');
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+            expect(err.response.body).toHaveProperty('error');
+        }
+    });
+
+    test('Create a requirement with a \'$\' in one of the data fields', async () => {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                'data': {
+                    '$bill': 'This is a bad field',
+                }
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        try {
+            const response = await request.put(options);
+            fail('We expected an error in the response, but did not get one');
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+            expect(err.response.body).toHaveProperty('error');
+        }
+    });
+});
+
+describe('Requirement Creation', () => {
     test('Create a basic requirement', async () => {
         const options = {
             method: 'PUT',
@@ -119,30 +176,78 @@ describe('Requirement Creation', async () => {
         expect(response.body.data.name).toBe('It doesnt matter what my name is');
         expect(response.body.data.description).toBe('Behold, this is REQ001');
     });
+});
 
-    test('Verify we cannot create a duplicate requirement', async () => {
+describe('Requirement Editing', () => {
+    test('Verify we can edit an already existing requirement', async () => {
         const options = {
             method: 'PUT',
             uri: server_location + '/requirements/REQ001',
             body: {
                 data: {
-                    name: 'A different name',
-                    description: 'Behold, this is REQ001s doppleganger'
+                    description: 'This is now a different requirement',
+                    trace: {
+                        files: ['main.c', 'main.h', 'run.c']
+                    }
                 }
             },
             resolveWithFullResponse: true,
             json: true
         };
 
-        try {
-            const response = await request.put(options);
-        }
-        catch (err) {
-            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-            expect(err.response.body).toHaveProperty('error');
-        }
+        const response = await request.put(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+    });
+
+    test('Verify the edit was successful', async () => {
+        const options = {
+            method: 'GET',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        const expected_data = {
+            description: 'This is now a different requirement',
+            trace: {
+                files: ['main.c', 'main.h', 'run.c']
+            }
+        };
+
+        const response = await request.get(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.body.name).toBe('REQ001');
+        expect(response.body.data).toEqual(expected_data);
     });
 });
+
+// describe('Requirement Deletion', () => {
+//     test('Verify we can delete an existing requirement', async () => {
+//         const options = {
+//             method: 'DELETE',
+//             uri: server_location + '/requirements/REQ001',
+//             resolveWithFullResponse: true,
+//             json: true
+//         };
+
+//         const response = await request.delete(options);
+//         expect(response.statusCode).toBe(HttpStatus.OK);
+//     });
+
+//     test('Verify requirement was deleted successfully', async () => {
+//         const options = {
+//             method: 'GET',
+//             uri: server_location + '/requirements/REQ001',
+//             resolveWithFullResponse: true,
+//             json: true
+//         };
+
+//         const response = await request.delete(options);
+//         expect(response.statusCode).toBe(HttpStatus.OK);
+//         expect(response.body.name).toBe('REQ001');
+//         expect(response.body.data).toEqual({});
+//     });
+// });
 
 afterAll(async() => {
     await stopServer();

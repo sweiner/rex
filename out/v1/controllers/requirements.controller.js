@@ -106,6 +106,8 @@ router.put('/:name', jsonParser, (req, res, next) => {
         .then((results) => {
         const requirement = results[0];
         const history = results[1];
+        let updated_hist_promise = null;
+        let updated_req_promise = null;
         // If there is a change to this requirement, then save it.  Otherwise, ignore the request.
         if (history !== null) {
             if (!requirement) {
@@ -119,9 +121,12 @@ router.put('/:name', jsonParser, (req, res, next) => {
             // Update the history version number
             history.version = (requirement.history.length - 1);
             // Save both models
-            history.save();
-            requirement.save();
+            updated_hist_promise = history.save();
+            updated_req_promise = requirement.save();
         }
+        return Promise.all([updated_hist_promise, updated_req_promise]);
+    })
+        .then((results) => {
         return res.sendStatus(res.statusCode);
     })
         .catch(next);
