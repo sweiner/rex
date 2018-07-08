@@ -14,7 +14,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const rfc = __importStar(require("rfc6902"));
 exports.HistorySchema = new mongoose_1.Schema({ version: Number, log: String, patch: [mongoose_1.Schema.Types.Mixed] });
-function create_patch(old_data, new_data) {
+function createPatch(old_data, new_data) {
     let new_item;
     new_item = rfc.createPatch(new_data, old_data);
     if (new_item.length == 0) {
@@ -22,11 +22,11 @@ function create_patch(old_data, new_data) {
     }
     return new_item;
 }
-exports.create_patch = create_patch;
-function apply_patch(data, patch) {
+exports.createPatch = createPatch;
+function applyPatch(data, patch) {
     const patched = rfc.applyPatch(data, patch);
     return data;
 }
-exports.apply_patch = apply_patch;
+exports.applyPatch = applyPatch;
 exports.History = mongoose_1.model('History', exports.HistorySchema);
 //# sourceMappingURL=history.js.map

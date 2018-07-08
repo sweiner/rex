@@ -87,7 +87,7 @@ router.put('/:name', jsonParser, (req, res, next) => {
                 throw http_errors_1.default(HttpStatus.INTERNAL_SERVER_ERROR, 'Could not update requirement history.  Previous requirement data is corrupted.');
             }
             // Get the patch data for any updates
-            patch = history_1.create_patch(requirement.data, req.body.data);
+            patch = history_1.createPatch(requirement.data, req.body.data);
             // If there are no changes to this requirement, then do not update the model
             if (patch === null) {
                 // Breaking out of promise chain to avoid updating requirement history.
@@ -134,7 +134,7 @@ router.delete('/:name', (req, res, next) => {
         else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
             throw http_errors_1.default(HttpStatus.BAD_REQUEST, name + ' has already been deleted!');
         }
-        const hist_promise = history_1.History.create({ patch: history_1.create_patch(requirement.data, {}) });
+        const hist_promise = history_1.History.create({ patch: history_1.createPatch(requirement.data, {}) });
         requirement.data = {};
         return Promise.all([requirement, hist_promise]);
     })

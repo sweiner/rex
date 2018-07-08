@@ -7,8 +7,8 @@
 import { NextHandleFunction } from 'connect';
 import { Router, Request, Response } from 'express';
 import { Requirement, IRequirementModel } from '../models/requirement';
-import { History, create_patch, IHistoryModel } from '../models/history';
-import { Schema, DocumentQuery, ValidationError } from 'mongoose';
+import { History, createPatch, IHistoryModel } from '../models/history';
+import { Schema, DocumentQuery } from 'mongoose';
 import { HistoryController } from './history.controller';
 import bodyParser from 'body-parser';
 import * as HttpStatus from 'http-status-codes';
@@ -92,7 +92,7 @@ router.put('/:name', jsonParser, (req: Request, res: Response, next: (...args: a
             }
 
             // Get the patch data for any updates
-            patch = create_patch(requirement.data, req.body.data);
+            patch = createPatch(requirement.data, req.body.data);
 
             // If there are no changes to this requirement, then do not update the model
             if (patch === null) {
@@ -148,7 +148,7 @@ router.delete('/:name', (req: Request, res: Response, next: (...args: any[]) => 
             throw HttpError(HttpStatus.BAD_REQUEST, name + ' has already been deleted!');
         }
 
-        const hist_promise: Promise<IHistoryModel> = History.create({patch: create_patch(requirement.data!, <Schema.Types.Mixed> {})});
+        const hist_promise: Promise<IHistoryModel> = History.create({patch: createPatch(requirement.data!, <Schema.Types.Mixed> {})});
 
         requirement.data = <Schema.Types.Mixed> {};
         return Promise.all([requirement, hist_promise]);

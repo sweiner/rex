@@ -58,7 +58,7 @@ router.get('/:name/:version', (req, res, next) => {
         }
         const reconstructed_data = requirement;
         for (let i = (requirement.history.length - 1); i > version; i--) {
-            reconstructed_data.data = history_1.apply_patch(reconstructed_data.data, requirement.history[i].patch);
+            reconstructed_data.data = history_1.applyPatch(reconstructed_data.data, requirement.history[i].patch);
         }
         const reconstructed_data_object = reconstructed_data.toObject();
         res.json(reconstructed_data_object);

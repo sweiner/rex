@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { NextHandleFunction } from 'connect';
 import { Requirement, IRequirementModel } from '../models/requirement';
-import { History, IHistoryModel, apply_patch } from '../models/history';
+import { History, IHistoryModel, applyPatch } from '../models/history';
 import bodyParser from 'body-parser';
 import * as HttpStatus from 'http-status-codes';
 import HttpError from 'http-errors';
@@ -57,7 +57,7 @@ router.get('/:name/:version', (req: Request, res: Response, next: (...args: any[
 
         const reconstructed_data: IRequirementModel = requirement;
         for ( let i = (requirement.history!.length - 1); i > version; i--) {
-            reconstructed_data.data = apply_patch(reconstructed_data.data!, (requirement.history![i] as any).patch);
+            reconstructed_data.data = applyPatch(reconstructed_data.data!, (requirement.history![i] as any).patch);
         }
 
         const reconstructed_data_object = reconstructed_data.toObject();

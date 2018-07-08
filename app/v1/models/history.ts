@@ -20,7 +20,7 @@ export interface IHistoryModel extends IHistory, Document {
 export const HistorySchema: Schema = new Schema(
     { version: Number, log: String, patch: [Schema.Types.Mixed] });
 
-export function create_patch(old_data: Schema.Types.Mixed, new_data: Schema.Types.Mixed): Operation[] | null {
+export function createPatch(old_data: Schema.Types.Mixed, new_data: Schema.Types.Mixed): Operation[] | null {
     let new_item: Operation[];
 
     new_item = rfc.createPatch(new_data, old_data);
@@ -30,7 +30,7 @@ export function create_patch(old_data: Schema.Types.Mixed, new_data: Schema.Type
     return new_item;
 }
 
-export function apply_patch(data: Schema.Types.Mixed, patch: Operation[]): Schema.Types.Mixed {
+export function applyPatch(data: Schema.Types.Mixed, patch: Operation[]): Schema.Types.Mixed {
     const patched: Schema.Types.Mixed = rfc.applyPatch(data, patch);
     return data;
 }
