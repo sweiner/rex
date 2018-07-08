@@ -45,8 +45,8 @@ describe('Requirement Creation Robustness', () => {
             fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
-            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-            expect(err.response.body).toHaveProperty('error');
+            expect(err.response.statusCode).toBe(HttpStatus.NOT_FOUND);
+            expect(err.response.body).toHaveProperty('message');
         }
     });
 
@@ -66,7 +66,7 @@ describe('Requirement Creation Robustness', () => {
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-            expect(err.response.body).toHaveProperty('error');
+            expect(err.response.body).toHaveProperty('message');
         }
     });
 
@@ -86,7 +86,7 @@ describe('Requirement Creation Robustness', () => {
         }
         catch (err) {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-            expect(err.response.body).toHaveProperty('error');
+            expect(err.response.body).toHaveProperty('message');
         }
     });
 });
@@ -114,8 +114,7 @@ describe('Test MongoDB Object Field Limitations', () => {
             fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
-            expect(err.response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
-            expect(err.response.body).toHaveProperty('error');
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
         }
     });
 
@@ -137,8 +136,7 @@ describe('Test MongoDB Object Field Limitations', () => {
             fail('We expected an error in the response, but did not get one');
         }
         catch (err) {
-            expect(err.response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
-            expect(err.response.body).toHaveProperty('error');
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
         }
     });
 });

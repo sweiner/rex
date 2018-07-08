@@ -20,6 +20,7 @@ const history_1 = require("../models/history");
 const history_controller_1 = require("./history.controller");
 const body_parser_1 = __importDefault(require("body-parser"));
 const HttpStatus = __importStar(require("http-status-codes"));
+const http_errors_1 = __importDefault(require("http-errors"));
 // Assign router to the express.Router() instance
 const router = express_1.Router();
 const jsonParser = body_parser_1.default.json();
@@ -31,7 +32,7 @@ router.get('/', (req, res, next) => {
     const promise = requirement_1.Requirement.find({}, 'name data -_id').lean();
     promise.then((requirements) => {
         res.status(HttpStatus.OK);
-        return res.json(requirements);
+        res.json(requirements);
     })
         .catch(next);
 });
@@ -43,10 +44,9 @@ router.get('/:name', (req, res, next) => {
     query.exec();
     query.then((requirement) => {
         if (requirement === null) {
-            res.status(HttpStatus.BAD_REQUEST);
-            throw new Error('Requirement does not exist!');
+            throw http_errors_1.default(HttpStatus.NOT_FOUND, name + ' does not exist!');
         }
-        return res.json(requirement);
+        res.json(requirement);
     })
         .catch(next);
 });
@@ -55,12 +55,10 @@ router.put('/:name', jsonParser, (req, res, next) => {
     const conditions = { 'name': name };
     const query = requirement_1.Requirement.findOne(conditions);
     if (!req.body.data) {
-        res.status(HttpStatus.BAD_REQUEST);
-        throw new Error('Data field missing from requirement body.  See /api-docs for details');
+        throw http_errors_1.default(HttpStatus.BAD_REQUEST, 'Data field missing from requirement body.  See /api-docs for details');
     }
     else if (typeof (req.body.data) != 'object') {
-        res.status(HttpStatus.BAD_REQUEST);
-        throw new Error('Data field must contain an object.  See /api-docs for details');
+        throw http_errors_1.default(HttpStatus.BAD_REQUEST, 'Data field must contain an object.  See /api-docs for details');
     }
     const req_promise = query.exec();
     // Create the new requirement if it does not exist
@@ -79,55 +77,48 @@ router.put('/:name', jsonParser, (req, res, next) => {
     })
         // Create the history record
         .then((requirement) => {
-        let hist_promise = null;
+        let patch = null;
         if (res.statusCode == HttpStatus.CREATED) {
             // The history for a new requirement will start off with a blank patch
-            hist_promise = history_1.History.create({ patch: {}, log: req.body.log });
+            patch = {};
         }
         else {
             if (requirement.data === undefined) {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-                throw new Error('Could not update requirement history.  Previous requirement data is undefined.');
+                throw http_errors_1.default(HttpStatus.INTERNAL_SERVER_ERROR, 'Could not update requirement history.  Previous requirement data is corrupted.');
             }
             // Get the patch data for any updates
-            const patch = history_1.create_patch(requirement.data, req.body.data);
+            patch = history_1.create_patch(requirement.data, req.body.data);
             // If there are no changes to this requirement, then do not update the model
             if (patch === null) {
-                hist_promise = Promise.resolve(null);
-            }
-            else {
-                hist_promise = history_1.History.create({ patch: patch, log: req.body.log });
-                requirement.data = req.body.data;
+                // Breaking out of promise chain to avoid updating requirement history.
+                // Want to send OK here so that PUT is idempotent.
+                throw res.sendStatus(HttpStatus.OK);
             }
         }
+        const hist_promise = history_1.History.create({ patch: patch, log: req.body.log });
+        requirement.data = req.body.data;
         return Promise.all([requirement, hist_promise]);
     })
         // Then link history to the requirement and save
         .then((results) => {
         const requirement = results[0];
         const history = results[1];
-        let updated_hist_promise = null;
-        let updated_req_promise = null;
-        // If there is a change to this requirement, then save it.  Otherwise, ignore the request.
-        if (history !== null) {
-            if (!requirement) {
-                throw new Error(name + 'does not exist!');
-            }
-            else if (requirement.history === undefined || requirement.data === undefined) {
-                throw new Error('Error creating document history');
-            }
-            // Push the history ID
-            requirement.history.push(history._id);
-            // Update the history version number
-            history.version = (requirement.history.length - 1);
-            // Save both models
-            updated_hist_promise = history.save();
-            updated_req_promise = requirement.save();
-        }
+        // Push the history ID
+        requirement.history.push(history._id);
+        // Update the history version number
+        history.version = (requirement.history.length - 1);
+        // Save both models
+        const updated_hist_promise = history.save();
+        const updated_req_promise = requirement.save();
         return Promise.all([updated_hist_promise, updated_req_promise]);
     })
         .then((results) => {
-        return res.sendStatus(res.statusCode);
+        res.sendStatus(res.statusCode);
+    })
+        .catch((err) => {
+        if (err instanceof Error) {
+            throw err;
+        }
     })
         .catch(next);
 });
@@ -138,16 +129,10 @@ router.delete('/:name', (req, res, next) => {
     const req_promise = query.exec();
     req_promise.then((requirement) => {
         if (!requirement) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error(name + ' does not exist!');
-        }
-        else if (requirement.history === undefined || requirement.data === undefined) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            throw new Error('Error creating document history');
+            throw http_errors_1.default(HttpStatus.NOT_FOUND, name + ' does not exist!');
         }
         else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
-            res.status(HttpStatus.BAD_REQUEST);
-            throw new Error('Requirement has already been deleted!');
+            throw http_errors_1.default(HttpStatus.BAD_REQUEST, name + ' has already been deleted!');
         }
         const hist_promise = history_1.History.create({ patch: history_1.create_patch(requirement.data, {}) });
         requirement.data = {};
@@ -158,7 +143,7 @@ router.delete('/:name', (req, res, next) => {
         const history = results[1];
         requirement.history.push(history._id);
         requirement.save();
-        return res.sendStatus(HttpStatus.NO_CONTENT);
+        res.sendStatus(HttpStatus.NO_CONTENT);
     })
         .catch(next);
 });

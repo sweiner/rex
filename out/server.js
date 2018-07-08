@@ -24,8 +24,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // Import everything from express and assign it to the express variable
 const express_1 = __importDefault(require("express"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const db = __importStar(require("./db"));
 const version_controller_1 = require("./v1/controllers/version.controller");
+const http_errors_1 = require("http-errors");
+const HttpStatus = __importStar(require("http-status-codes"));
 // Local functions
 function normalizePort(val) {
     const port = (typeof val === 'string') ? parseInt(val, 10) : val;
@@ -56,11 +59,22 @@ function startServer(database) {
         app.use('/v1', version_controller_1.Version1Controller);
         // Define error handling middleware
         app.use(function (err, req, res, next) {
-            // console.log(err.stack);
-            if (res.statusCode < 400) {
-                res.status(500);
+            if (err instanceof http_errors_1.HttpError) {
+                res.status(err.status);
+                res.json(err);
             }
-            res.json({ 'error': err.message || 'An unspecified error has occrred' });
+            else if (err instanceof mongoose_1.default.Error) {
+                if (err.name == 'ValidationError') {
+                    res.status(HttpStatus.BAD_REQUEST);
+                    res.json({ 'message': err.message });
+                }
+                else {
+                    res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+            else {
+                res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             next();
         });
         // Serve the application at the given port

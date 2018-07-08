@@ -18,8 +18,7 @@ function validateDataFields(data) {
         if (data.hasOwnProperty(key)) {
             if (key.match(reg)) {
                 throw new Error('Cannot use \'.\' or \'$\' characters in an object key (' + key + '). ' +
-                    'This is a limitation of MongoDB. See https://docs.mongodb.com/manual/reference/limits/#Restrictions-on-Field-Names ' +
-                    'for reference');
+                    'This is a limitation of MongoDB. See https://docs.mongodb.com/manual/reference/limits/#Restrictions-on-Field-Names ');
             }
             else if (data[key] && typeof data[key] == 'object') {
                 result = result && validateDataFields(data[key]);
@@ -37,7 +36,7 @@ function simplify(doc, ret, options) {
 exports.simplify = simplify;
 const RequirementSchema = new mongoose_1.Schema({
     name: { type: String, index: true, unique: true },
-    history: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'History' }],
+    history: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'History', default: [] }],
     data: { type: mongoose_1.Schema.Types.Mixed, default: {}, validate: validateDataFields }
 }, { minimize: false });
 RequirementSchema.set('toObject', { transform: simplify });

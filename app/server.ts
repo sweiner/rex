@@ -12,6 +12,8 @@ import * as db from './db';
 // Import WelcomeController from controllers entry point
 import { Socket } from 'net';
 import { Version1Controller } from './v1/controllers/version.controller';
+import { HttpError } from 'http-errors';
+import * as HttpStatus from 'http-status-codes';
 
 // Local functions
 function normalizePort(val: number | string): number | string | boolean {
@@ -43,11 +45,22 @@ export async function startServer(database?: string): Promise<void> {
 
     // Define error handling middleware
     app.use(function(err: Error, req: express.Request, res: express.Response, next: ((value?: any) => void)) {
-        // console.log(err.stack);
-        if (res.statusCode < 400) {
-            res.status(500);
+        if (err instanceof HttpError) {
+            res.status(err.status);
+            res.json(err);
         }
-        res.json({'error': err.message || 'An unspecified error has occrred'});
+        else if (err instanceof mongoose.Error) {
+            if (err.name == 'ValidationError') {
+                res.status(HttpStatus.BAD_REQUEST);
+                res.json({'message': err.message});
+            }
+            else {
+                res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        else {
+            res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         next();
     });
 
