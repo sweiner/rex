@@ -1,5 +1,5 @@
 # REX
-## DO-178B/C Requirements Management Server
+### DO-178B/C Requirements Management Server
 [![Build Status](https://travis-ci.org/sweiner/rex.svg?branch=master)](https://travis-ci.org/sweiner/rex) [![codecov](https://codecov.io/gh/sweiner/rex/branch/master/graph/badge.svg)](https://codecov.io/gh/sweiner/rex)
 
 ## Introduction
