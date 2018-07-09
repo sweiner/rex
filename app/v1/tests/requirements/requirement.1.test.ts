@@ -32,7 +32,7 @@ beforeAll( async () => {
     }
 });
 
-describe('Requirement Creation Robustness', () => {
+describe('Requirement Robustness', () => {
     test('Request a non-existing requirement', async () => {
         const options = {
             method: 'GET',
@@ -89,10 +89,27 @@ describe('Requirement Creation Robustness', () => {
             expect(err.response.body).toHaveProperty('message');
         }
     });
+
+    test('Delete a requirement that does not exist', async () => {
+        const options = {
+            method: 'DELETE',
+            uri: server_location + '/requirements/REQ001',
+            json: true
+        };
+
+        try {
+            const response = await request.delete(options);
+            fail('We expected an error in the response, but did not get one');
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.NOT_FOUND);
+            expect(err.response.body).toHaveProperty('message');
+        }
+    });
 });
 
-describe('Test MongoDB Object Field Limitations', () => {
-    test('Create a requirement with a \'.\' in one of the data fields', async () => {
+describe('Test Data Field Limitations', () => {
+    test('Create a requirement with a \'.\' in one of the data fields (MongoDB Limitation)', async () => {
         const options = {
             method: 'PUT',
             uri: server_location + '/requirements/REQ001',
@@ -118,7 +135,7 @@ describe('Test MongoDB Object Field Limitations', () => {
         }
     });
 
-    test('Create a requirement with a \'$\' in one of the data fields', async () => {
+    test('Create a requirement with a \'$\' in one of the data fields (MongoDB Limitation)', async () => {
         const options = {
             method: 'PUT',
             uri: server_location + '/requirements/REQ001',
@@ -219,33 +236,51 @@ describe('Requirement Editing', () => {
     });
 });
 
-// describe('Requirement Deletion', () => {
-//     test('Verify we can delete an existing requirement', async () => {
-//         const options = {
-//             method: 'DELETE',
-//             uri: server_location + '/requirements/REQ001',
-//             resolveWithFullResponse: true,
-//             json: true
-//         };
+describe('Requirement Deletion', () => {
+    test('Verify we can delete an existing requirement', async () => {
+        const options = {
+            method: 'DELETE',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
 
-//         const response = await request.delete(options);
-//         expect(response.statusCode).toBe(HttpStatus.OK);
-//     });
+        const response = await request.delete(options);
+        expect(response.statusCode).toBe(HttpStatus.NO_CONTENT);
+    });
 
-//     test('Verify requirement was deleted successfully', async () => {
-//         const options = {
-//             method: 'GET',
-//             uri: server_location + '/requirements/REQ001',
-//             resolveWithFullResponse: true,
-//             json: true
-//         };
+    test('Verify requirement was deleted successfully', async () => {
+        const options = {
+            method: 'GET',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
 
-//         const response = await request.delete(options);
-//         expect(response.statusCode).toBe(HttpStatus.OK);
-//         expect(response.body.name).toBe('REQ001');
-//         expect(response.body.data).toEqual({});
-//     });
-// });
+        const response = await request.get(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.body.name).toBe('REQ001');
+        expect(response.body.data).toEqual({});
+    });
+
+    test('Verify we cannot delete a requirement multiple times', async () => {
+        const options = {
+            method: 'DELETE',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        try {
+            const response = await request.delete(options);
+            fail('We expected an error in the response, but did not get one');
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body).toHaveProperty('message');
+        }
+    });
+});
 
 afterAll(async() => {
     await stopServer();
