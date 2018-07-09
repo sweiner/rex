@@ -49,14 +49,9 @@ export async function startServer(database?: string): Promise<void> {
             res.status(err.status);
             res.json(err);
         }
-        else if (err instanceof mongoose.Error) {
-            if (err.name == 'ValidationError') {
-                res.status(HttpStatus.BAD_REQUEST);
-                res.json({'message': err.message});
-            }
-            else {
-                res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        else if (err instanceof mongoose.Error && err.name == 'ValidationError') {
+            res.status(HttpStatus.BAD_REQUEST);
+            res.json({'message': err.message});
         }
         else {
             res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);

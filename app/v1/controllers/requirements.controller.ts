@@ -94,7 +94,7 @@ router.put('/:name', jsonParser, (req: Request, res: Response, next: (...args: a
             if (patch === null) {
                 // Breaking out of promise chain to avoid updating requirement history.
                 // Want to send OK here so that PUT is idempotent.
-                throw res.sendStatus(HttpStatus.OK);
+                throw res.status(HttpStatus.OK);
             }
         }
 
@@ -125,6 +125,7 @@ router.put('/:name', jsonParser, (req: Request, res: Response, next: (...args: a
     })
     .catch((err) => {
         if (err instanceof Error) { throw err; }
+        else { res.sendStatus(res.statusCode); }
     })
     .catch(next);
 });
