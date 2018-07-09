@@ -234,6 +234,47 @@ describe('Requirement Editing', () => {
         expect(response.body.name).toBe('REQ001');
         expect(response.body.data).toEqual(expected_data);
     });
+
+    test('Test a duplicate edit', async () => {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                data: {
+                    description: 'This is now a different requirement',
+                    trace: {
+                        files: ['main.c', 'main.h', 'run.c']
+                    }
+                }
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        const response = await request.put(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+    });
+
+    test('Verify the edit was ignored', async () => {
+        const options = {
+            method: 'GET',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        const expected_data = {
+            description: 'This is now a different requirement',
+            trace: {
+                files: ['main.c', 'main.h', 'run.c']
+            }
+        };
+
+        const response = await request.get(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.body.name).toBe('REQ001');
+        expect(response.body.data).toEqual(expected_data);
+    });
 });
 
 describe('Requirement Deletion', () => {

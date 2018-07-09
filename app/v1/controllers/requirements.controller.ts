@@ -87,12 +87,8 @@ router.put('/:name', jsonParser, (req: Request, res: Response, next: (...args: a
             patch = {};
         }
         else {
-            if ( requirement.data === undefined ) {
-                throw HttpError(HttpStatus.INTERNAL_SERVER_ERROR, 'Could not update requirement history.  Previous requirement data is corrupted.');
-            }
-
             // Get the patch data for any updates
-            patch = createPatch(requirement.data, req.body.data);
+            patch = createPatch(requirement.data!, req.body.data);
 
             // If there are no changes to this requirement, then do not update the model
             if (patch === null) {
