@@ -83,16 +83,13 @@ router.put('/:name', jsonParser, (req, res, next) => {
             patch = {};
         }
         else {
-            if (requirement.data === undefined) {
-                throw http_errors_1.default(HttpStatus.INTERNAL_SERVER_ERROR, 'Could not update requirement history.  Previous requirement data is corrupted.');
-            }
             // Get the patch data for any updates
             patch = history_1.createPatch(requirement.data, req.body.data);
             // If there are no changes to this requirement, then do not update the model
             if (patch === null) {
                 // Breaking out of promise chain to avoid updating requirement history.
                 // Want to send OK here so that PUT is idempotent.
-                throw res.sendStatus(HttpStatus.OK);
+                throw res.status(HttpStatus.OK);
             }
         }
         const hist_promise = history_1.History.create({ patch: patch, log: req.body.log });
@@ -118,6 +115,9 @@ router.put('/:name', jsonParser, (req, res, next) => {
         .catch((err) => {
         if (err instanceof Error) {
             throw err;
+        }
+        else {
+            res.sendStatus(res.statusCode);
         }
     })
         .catch(next);

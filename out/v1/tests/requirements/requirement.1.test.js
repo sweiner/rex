@@ -103,10 +103,18 @@ describe('Requirement Robustness', () => {
             uri: server_location + '/requirements/REQ001',
             json: true
         };
+        try {
+            const response = yield request.delete(options);
+            fail('We expected an error in the response, but did not get one');
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.NOT_FOUND);
+            expect(err.response.body).toHaveProperty('message');
+        }
     }));
 });
-describe('Test MongoDB Object Field Limitations', () => {
-    test('Create a requirement with a \'.\' in one of the data fields', () => __awaiter(this, void 0, void 0, function* () {
+describe('Test Data Field Limitations', () => {
+    test('Create a requirement with a \'.\' in one of the data fields (MongoDB Limitation)', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
             uri: server_location + '/requirements/REQ001',
@@ -130,7 +138,7 @@ describe('Test MongoDB Object Field Limitations', () => {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
         }
     }));
-    test('Create a requirement with a \'$\' in one of the data fields', () => __awaiter(this, void 0, void 0, function* () {
+    test('Create a requirement with a \'$\' in one of the data fields (MongoDB Limitation)', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
             uri: server_location + '/requirements/REQ001',
@@ -219,6 +227,42 @@ describe('Requirement Editing', () => {
         expect(response.body.name).toBe('REQ001');
         expect(response.body.data).toEqual(expected_data);
     }));
+    test('Test a duplicate edit', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/REQ001',
+            body: {
+                data: {
+                    description: 'This is now a different requirement',
+                    trace: {
+                        files: ['main.c', 'main.h', 'run.c']
+                    }
+                }
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const response = yield request.put(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+    }));
+    test('Verify the edit was ignored', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'GET',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const expected_data = {
+            description: 'This is now a different requirement',
+            trace: {
+                files: ['main.c', 'main.h', 'run.c']
+            }
+        };
+        const response = yield request.get(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.body.name).toBe('REQ001');
+        expect(response.body.data).toEqual(expected_data);
+    }));
 });
 describe('Requirement Deletion', () => {
     test('Verify we can delete an existing requirement', () => __awaiter(this, void 0, void 0, function* () {
@@ -229,7 +273,7 @@ describe('Requirement Deletion', () => {
             json: true
         };
         const response = yield request.delete(options);
-        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.statusCode).toBe(HttpStatus.NO_CONTENT);
     }));
     test('Verify requirement was deleted successfully', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
@@ -238,10 +282,26 @@ describe('Requirement Deletion', () => {
             resolveWithFullResponse: true,
             json: true
         };
-        const response = yield request.delete(options);
+        const response = yield request.get(options);
         expect(response.statusCode).toBe(HttpStatus.OK);
         expect(response.body.name).toBe('REQ001');
         expect(response.body.data).toEqual({});
+    }));
+    test('Verify we cannot delete a requirement multiple times', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'DELETE',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        try {
+            const response = yield request.delete(options);
+            fail('We expected an error in the response, but did not get one');
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body).toHaveProperty('message');
+        }
     }));
 });
 afterAll(() => __awaiter(this, void 0, void 0, function* () {
