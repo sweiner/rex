@@ -45,7 +45,7 @@ beforeAll(() => __awaiter(this, void 0, void 0, function* () {
         server_1.stopServer();
     }
 }));
-describe('Requirement Creation Robustness', () => {
+describe('Requirement Robustness', () => {
     test('Request a non-existing requirement', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
@@ -96,6 +96,13 @@ describe('Requirement Creation Robustness', () => {
             expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
             expect(err.response.body).toHaveProperty('message');
         }
+    }));
+    test('Delete a requirement that does not exist', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'DELETE',
+            uri: server_location + '/requirements/REQ001',
+            json: true
+        };
     }));
 });
 describe('Test MongoDB Object Field Limitations', () => {
@@ -213,30 +220,30 @@ describe('Requirement Editing', () => {
         expect(response.body.data).toEqual(expected_data);
     }));
 });
-// describe('Requirement Deletion', () => {
-//     test('Verify we can delete an existing requirement', async () => {
-//         const options = {
-//             method: 'DELETE',
-//             uri: server_location + '/requirements/REQ001',
-//             resolveWithFullResponse: true,
-//             json: true
-//         };
-//         const response = await request.delete(options);
-//         expect(response.statusCode).toBe(HttpStatus.OK);
-//     });
-//     test('Verify requirement was deleted successfully', async () => {
-//         const options = {
-//             method: 'GET',
-//             uri: server_location + '/requirements/REQ001',
-//             resolveWithFullResponse: true,
-//             json: true
-//         };
-//         const response = await request.delete(options);
-//         expect(response.statusCode).toBe(HttpStatus.OK);
-//         expect(response.body.name).toBe('REQ001');
-//         expect(response.body.data).toEqual({});
-//     });
-// });
+describe('Requirement Deletion', () => {
+    test('Verify we can delete an existing requirement', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'DELETE',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const response = yield request.delete(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+    }));
+    test('Verify requirement was deleted successfully', () => __awaiter(this, void 0, void 0, function* () {
+        const options = {
+            method: 'GET',
+            uri: server_location + '/requirements/REQ001',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const response = yield request.delete(options);
+        expect(response.statusCode).toBe(HttpStatus.OK);
+        expect(response.body.name).toBe('REQ001');
+        expect(response.body.data).toEqual({});
+    }));
+});
 afterAll(() => __awaiter(this, void 0, void 0, function* () {
     yield server_1.stopServer();
     if (mongod) {
