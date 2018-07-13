@@ -92,9 +92,6 @@ GET https://servername/requirements/history/REQ001/0
 ### Searching
 - Search based on JSON filter criteria.
 
-### Reporting
-- Customizable reporting templates.
-
 ## Development Installation Instructions
 1. Install NodeJS from https://nodejs.org/en/
 2. Run `npm install` from within the project directory
