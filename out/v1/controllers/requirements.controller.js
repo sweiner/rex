@@ -26,16 +26,6 @@ const router = express_1.Router();
 const jsonParser = body_parser_1.default.json();
 // Attach the history controller
 router.use('/history', history_controller_1.HistoryController);
-// @TODO modify the global browse to be efficient
-router.get('/', (req, res, next) => {
-    // Create an async request to obtain all of the requirements
-    const promise = requirement_1.Requirement.find({}, 'data -_id').lean();
-    promise.then((requirements) => {
-        res.status(HttpStatus.OK);
-        res.json(requirements);
-    })
-        .catch(next);
-});
 router.get('/:name', (req, res, next) => {
     // Extract the name from the request parameters
     const { name } = req.params;

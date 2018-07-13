@@ -16,14 +16,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const _1 = require(".");
 const swagger = __importStar(require("swagger-ui-express"));
+const options = {
+    customCss: '.swagger-ui .topbar { display: none } .swagger-ui section.models { display: none }'
+};
 // Requiring JSON file
 const api_doc = require('../static/docs/api.json');
 // Assign router to the express.Router() instance
 const router = express_1.Router();
 // Attach controllers to the application
 router.use('/', _1.WelcomeController);
-router.use('/api-docs', swagger.serve, swagger.setup(api_doc));
-router.use('/requirements', _1.RequirementsController);
+router.use('/api-docs', swagger.serve, swagger.setup(api_doc, options));
+router.use('/requirement', _1.RequirementsController);
 router.use('/history', _1.HistoryController);
 // Export the express.Router() instance to be used by server.ts
 exports.Version1Controller = router;

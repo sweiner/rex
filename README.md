@@ -9,14 +9,14 @@
 ### RESTful API
 Each requirement is uniquely identified by a name / id which is specified in the URL.
 ```
-GET https://servername/requirements/REQ001
+GET http://servername/requirement/REQ001
 ```
 
 ### Flexible Requirement Schemas
 Requirement data is structured using a simple JSON structure in the request body.  Each requirement has a customizable data field, and an optional log field to track changes.
 
 ```
-PUT https://servername/requirements/REQ001
+PUT http://servername/requirement/REQ001
 ```
 ```json
 {
@@ -30,7 +30,7 @@ PUT https://servername/requirements/REQ001
 Requirement schemas can be customized on an individual basis with no database restructring.  Need more information for certification?  No problem, simply upload a new version of the requirement:
 
 ```
-PUT https://servername/requirements/REQ001
+PUT http://servername/requirement/REQ001
 ```
 ```json
 {
@@ -46,7 +46,7 @@ PUT https://servername/requirements/REQ001
 Deletes are also recorded and tracked in the history.
 
 ```
-DELETE https://servername/requirements/REQ001
+DELETE http://servername/requirement/REQ001
 ```
 ```json
 {
@@ -58,7 +58,7 @@ DELETE https://servername/requirements/REQ001
 `REX` automatically tracks changes and stores a history containing all of the log messages and versions of the requirement:
 
 ```
-GET https://servername/requirements/history/REQ001
+GET http://servername/requirement/history/REQ001
 ```
 ```json
 [
@@ -78,7 +78,7 @@ GET https://servername/requirements/history/REQ001
 ```
 Versions are accessed by supplying the version number to the history api
 ```
-GET https://servername/requirements/history/REQ001/0
+GET http://servername/requirement/history/REQ001/0
 ```
 ```json
 {

@@ -1,129 +1,335 @@
 {
-  "openapi": "3.0.0",
+  "swagger": "2.0",
   "info": {
-    "title": "Rex",
+    "title": "REX",
     "description": "Requirements Management Server API.",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "http://localhost:3000",
-      "description": "Development Server"
-    }
+  "host": "localhost:3000",
+  "basePath": "/v1",
+  "schemes": [
+    "http"
   ],
   "paths": {
-    "/requirements/browse": {
+    "/requirement/{id}": {
       "get": {
-        "summary": "Returns the complete list of requirement ids and data.",
+        "tags": [
+          "Requirement"
+        ],
+        "summary": "Get a requirement",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The requirement name or ID",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Returns an array of requirements",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Requirement"
-                  },
-                  "example": [
-                    {
-                      "id": "LLR001",
-                      "data": {
-                        "Description": "Example Requirement 1"
-                      }
-                    },
-                    {
-                      "id": "LLR002",
-                      "data": {
-                        "Description": "Example Requirement 2",
-                        "Tracing": [
-                          "ex1.c",
-                          "ex2.c"
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
+            "description": "Found requirement.",
+            "schema": {
+              "$ref": "#/definitions/RequirementSimple"
+            }
+          },
+          "404": {
+            "description": "Requirement not found.",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
-      }
-    },
-    "/requirements/browse/{id}": {
-      "get": {
-        "summary": "Returns the data for a given requirement ID",
+      },
+      "put": {
+        "tags": [
+          "Requirement"
+        ],
+        "summary": "Update or create a requirement",
+        "consumes": [
+          "application/json"
+        ],
         "parameters": [
           {
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
-            "description": "The requirement ID",
+            "description": "The requirement name or ID",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "requirement",
+            "required": true,
             "schema": {
-              "type": "string"
+              "$ref": "#/definitions/RequirementFull"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Returns a requirement object",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Requirement"
-                }
-              }
+            "description": "Requirement has been updated"
+          },
+          "201": {
+            "description": "Requirement has been created"
+          },
+          "400": {
+            "description": "Could not create or update the requirement.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Requirement"
+        ],
+        "summary": "Delete a requirement",
+        "description": "Note - A requirement deletion will not remove the reqiurement from the database. Instead, all data is removed, and the history is updated with the removal and corresponding log information.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The requirement name or ID",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "log",
+            "schema": {
+              "$ref": "#/definitions/Log"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requirement has been deleted."
+          },
+          "404": {
+            "description": "Could not find the requirement.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/requirement/history/{id}": {
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Get a requirement's history",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The requirement name or ID",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Found history.",
+            "schema": {
+              "$ref": "#/definitions/History"
+            }
+          },
+          "404": {
+            "description": "History not found.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/requirement/history/{id}/{version}": {
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Get a specific version of a requirement",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The requirement name or ID",
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "description": "The version of the requirement",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Found version.",
+            "schema": {
+              "$ref": "#/definitions/RequirementSimple"
+            }
+          },
+          "404": {
+            "description": "Version not found.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/requirement/history/{id}/{version}/log": {
+      "put": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Change the log message of a specific requirement version",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The requirement name or ID",
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "description": "The requirement version",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "log",
+            "required": true,
+            "description": "The updated log",
+            "schema": {
+              "$ref": "#/definitions/Log"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log updated"
+          },
+          "400": {
+            "description": "Bad log body.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Requirement or version not found.",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
       }
     }
   },
-  "components": {
-    "schemas": {
-      "Requirement": {
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object"
-          }
+  "definitions": {
+    "RequirementFull": {
+      "required": [
+        "data"
+      ],
+      "properties": {
+        "data": {
+          "type": "object"
         },
-        "example": {
-          "id": "LLR001",
-          "data": {
-            "Description": "The main loop shall update at 10hz",
-            "Derived": true,
-            "Tracing": {
-              "Source_Files": [
-                "main.c",
-                "main.h"
-              ],
-              "Functions": [
-                "update",
-                "update10Hz"
-              ],
-              "Constants": "TEN_HZ",
-              "Test_Cases": [
-                {
-                  "test_rate_1.c": [
-                    "TC001",
-                    "TC002",
-                    "TC003"
-                  ]
-                },
-                {
-                  "test_rate_2.c": [
-                    "TC105",
-                    "TC106"
-                  ]
-                }
-              ]
-            }
-          }
+        "log": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "data": {
+          "Description": "The main loop shall update at 10hz",
+          "Derived": true
+        },
+        "log": "Initial version of the requirement"
+      }
+    },
+    "RequirementSimple": {
+      "required": [
+        "data"
+      ],
+      "properties": {
+        "data": {
+          "type": "object"
+        }
+      },
+      "example": {
+        "data": {
+          "Description": "The main loop shall update at 10hz",
+          "Derived": true
         }
       }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "object"
+        }
+      },
+      "example": {
+        "message": "Error message here"
+      }
+    },
+    "Log": {
+      "type": "object",
+      "properties": {
+        "Log": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "log": "Initial requirement creation"
+      }
+    },
+    "History": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer"
+          },
+          "log": {
+            "type": "string"
+          }
+        }
+      },
+      "example": [
+        {
+          "version": 0,
+          "log": "Initial version of requirement"
+        },
+        {
+          "version": 1,
+          "log": "Next change"
+        }
+      ]
     }
   }
 }
