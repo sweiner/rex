@@ -45,6 +45,7 @@ export function simplify(doc: Document, ret: any, options: DocumentToObjectOptio
     delete ret._id;
     delete ret.__v;
     delete ret.history;
+    delete ret.name;
     return ret;
 }
 

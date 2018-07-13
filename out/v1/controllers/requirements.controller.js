@@ -29,7 +29,7 @@ router.use('/history', history_controller_1.HistoryController);
 // @TODO modify the global browse to be efficient
 router.get('/', (req, res, next) => {
     // Create an async request to obtain all of the requirements
-    const promise = requirement_1.Requirement.find({}, 'name data -_id').lean();
+    const promise = requirement_1.Requirement.find({}, 'data -_id').lean();
     promise.then((requirements) => {
         res.status(HttpStatus.OK);
         res.json(requirements);
@@ -40,7 +40,7 @@ router.get('/:name', (req, res, next) => {
     // Extract the name from the request parameters
     const { name } = req.params;
     // Create an async request to find a particular requirement by name
-    const query = requirement_1.Requirement.findOne({ name: name }, 'name data -_id').lean();
+    const query = requirement_1.Requirement.findOne({ name: name }, 'data -_id').lean();
     query.exec();
     query.then((requirement) => {
         if (requirement === null) {
@@ -122,7 +122,7 @@ router.put('/:name', jsonParser, (req, res, next) => {
     })
         .catch(next);
 });
-router.delete('/:name', (req, res, next) => {
+router.delete('/:name', jsonParser, (req, res, next) => {
     const { name } = req.params;
     const conditions = { 'name': name };
     const query = requirement_1.Requirement.findOne(conditions);
@@ -134,7 +134,7 @@ router.delete('/:name', (req, res, next) => {
         else if (Object.keys(requirement.data).length === 0 && requirement.data.constructor === Object) {
             throw http_errors_1.default(HttpStatus.BAD_REQUEST, name + ' has already been deleted!');
         }
-        const hist_promise = history_1.History.create({ patch: history_1.createPatch(requirement.data, {}) });
+        const hist_promise = history_1.History.create({ patch: history_1.createPatch(requirement.data, {}), log: req.body.log });
         requirement.data = {};
         return Promise.all([requirement, hist_promise]);
     })
@@ -142,8 +142,14 @@ router.delete('/:name', (req, res, next) => {
         const requirement = results[0];
         const history = results[1];
         requirement.history.push(history._id);
-        requirement.save();
-        res.sendStatus(HttpStatus.NO_CONTENT);
+        // Update the history version number
+        history.version = (requirement.history.length - 1);
+        const updated_hist_promise = history.save();
+        const updated_req_promise = requirement.save();
+        return Promise.all([updated_hist_promise, updated_req_promise]);
+    })
+        .then((results) => {
+        res.sendStatus(HttpStatus.OK);
     })
         .catch(next);
 });

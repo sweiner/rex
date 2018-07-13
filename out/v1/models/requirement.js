@@ -31,6 +31,7 @@ function simplify(doc, ret, options) {
     delete ret._id;
     delete ret.__v;
     delete ret.history;
+    delete ret.name;
     return ret;
 }
 exports.simplify = simplify;

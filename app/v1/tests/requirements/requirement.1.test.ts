@@ -187,7 +187,6 @@ describe('Requirement Creation', () => {
 
         const response = await request.get(options);
         expect(response.statusCode).toBe(HttpStatus.OK);
-        expect(response.body.name).toBe('REQ001');
         expect(response.body.data.name).toBe('It doesnt matter what my name is');
         expect(response.body.data.description).toBe('Behold, this is REQ001');
     });
@@ -231,7 +230,6 @@ describe('Requirement Editing', () => {
 
         const response = await request.get(options);
         expect(response.statusCode).toBe(HttpStatus.OK);
-        expect(response.body.name).toBe('REQ001');
         expect(response.body.data).toEqual(expected_data);
     });
 
@@ -272,7 +270,6 @@ describe('Requirement Editing', () => {
 
         const response = await request.get(options);
         expect(response.statusCode).toBe(HttpStatus.OK);
-        expect(response.body.name).toBe('REQ001');
         expect(response.body.data).toEqual(expected_data);
     });
 });
@@ -287,7 +284,7 @@ describe('Requirement Deletion', () => {
         };
 
         const response = await request.delete(options);
-        expect(response.statusCode).toBe(HttpStatus.NO_CONTENT);
+        expect(response.statusCode).toBe(HttpStatus.OK);
     });
 
     test('Verify requirement was deleted successfully', async () => {
@@ -300,7 +297,6 @@ describe('Requirement Deletion', () => {
 
         const response = await request.get(options);
         expect(response.statusCode).toBe(HttpStatus.OK);
-        expect(response.body.name).toBe('REQ001');
         expect(response.body.data).toEqual({});
     });
 

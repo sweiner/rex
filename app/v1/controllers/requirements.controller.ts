@@ -24,7 +24,7 @@ router.use('/history', HistoryController);
 // @TODO modify the global browse to be efficient
 router.get('/', (req: Request, res: Response, next: (...args: any[]) => void) => {
     // Create an async request to obtain all of the requirements
-    const promise = Requirement.find({}, 'name data -_id').lean();
+    const promise = Requirement.find({}, 'data -_id').lean();
 
     promise.then((requirements) => {
         res.status(HttpStatus.OK);
@@ -38,7 +38,7 @@ router.get('/:name', (req: Request, res: Response, next: (...args: any[]) => voi
     const { name } = req.params;
 
     // Create an async request to find a particular requirement by name
-    const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne({name: name}, 'name data -_id').lean();
+    const query: DocumentQuery<IRequirementModel | null, IRequirementModel> = Requirement.findOne({name: name}, 'data -_id').lean();
     query.exec();
 
     query.then((requirement) => {
@@ -130,7 +130,7 @@ router.put('/:name', jsonParser, (req: Request, res: Response, next: (...args: a
     .catch(next);
 });
 
-router.delete('/:name', (req: Request, res: Response, next: (...args: any[]) => void) => {
+router.delete('/:name', jsonParser, (req: Request, res: Response, next: (...args: any[]) => void) => {
     const { name } = req.params;
     const conditions = { 'name': name };
 
@@ -145,7 +145,7 @@ router.delete('/:name', (req: Request, res: Response, next: (...args: any[]) => 
             throw HttpError(HttpStatus.BAD_REQUEST, name + ' has already been deleted!');
         }
 
-        const hist_promise: Promise<IHistoryModel> = History.create({patch: createPatch(requirement.data!, <Schema.Types.Mixed> {})});
+        const hist_promise: Promise<IHistoryModel> = History.create({patch: createPatch(requirement.data!, <Schema.Types.Mixed> {}), log: req.body.log});
 
         requirement.data = <Schema.Types.Mixed> {};
         return Promise.all([requirement, hist_promise]);
@@ -155,10 +155,17 @@ router.delete('/:name', (req: Request, res: Response, next: (...args: any[]) => 
         const history: IHistoryModel = results[1];
 
         requirement.history!.push(history._id);
-        requirement.save();
 
-        res.sendStatus(HttpStatus.NO_CONTENT);
+        // Update the history version number
+        history.version = (requirement.history!.length - 1);
 
+        const updated_hist_promise = history.save();
+        const updated_req_promise = requirement.save();
+
+        return Promise.all([updated_hist_promise, updated_req_promise]);
+    })
+    .then ((results) => {
+        res.sendStatus(HttpStatus.OK);
     })
     .catch(next);
 });

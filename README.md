@@ -5,17 +5,95 @@
 ## Introduction
 `REX` is a full featured requirements management server which was designed specifically for Aerospace DO-178B/C software processes.  The goal of `REX` is to provide a free, customizable, and simple alternative to other proprietary requirements management tools such as DOORS or JAMA.  `REX` is accessed through a convenient REST API, and can support any number of custom client applications.
 
-## Features
-### Change Managment
-- Change Logs
-- Version Control
-- Diff Capability
+## Current Features
+### RESTful API
+Each requirement is uniquely identified by a name / id which is specified in the URL.
+```
+GET https://servername/requirements/REQ001
+```
 
+### Flexible Requirement Schemas
+Requirement data is structured using a simple JSON structure in the request body.  Each requirement has a customizable data field, and an optional log field to track changes.
+
+```
+PUT https://servername/requirements/REQ001
+```
+```json
+{
+    "data": {
+        "name": "Execute Flight Plan",
+        "description": "The flight plan shall be executed when the EXEC button is pressed"
+    },
+    "log": "Initial requirement from customer."
+}
+```
+Requirement schemas can be customized on an individual basis with no database restructring.  Need more information for certification?  No problem, simply upload a new version of the requirement:
+
+```
+PUT https://servername/requirements/REQ001
+```
+```json
+{
+    "data": {
+        "name": "Execute Flight Plan",
+        "description": "The flight plan shall be executed when the EXEC button is pressed",
+        "type": "Systems Requirement",
+        "tracing": ["HLR001", "HLR002", "HLR003"]
+    },
+    "log": "Updated with fields recommended by the DER."
+}
+```
+Deletes are also recorded and tracked in the history.
+
+```
+DELETE https://servername/requirements/REQ001
+```
+```json
+{
+    "log": "Customer now hates this requirement."
+}
+```
+
+### Change Managment
+`REX` automatically tracks changes and stores a history containing all of the log messages and versions of the requirement:
+
+```
+GET https://servername/requirements/history/REQ001
+```
+```json
+[
+    {
+        "log": "Initial requirement from customer.",
+        "version": 0
+    },
+    {
+        "log": "Updated with fields recommended by the DER.",
+        "version": 1
+    },
+    {
+        "log": "Customer now hates this requirement.",
+        "version": 2
+    }
+]
+```
+Versions are accessed by supplying the version number to the history api
+```
+GET https://servername/requirements/history/REQ001/0
+```
+```json
+{
+    "data": {
+        "name": "Execute Flight Plan",
+        "description": "The flight plan shall be executed when the EXEC button is pressed"
+    }
+}
+```
+## Planned Features
 ### Searching
-- Search based on JSON filter criteria
+- Search based on JSON filter criteria.
 
 ### Reporting
-- TBD
+- Customizable reporting templates.
 
 ## Development Installation Instructions
 1. Install NodeJS from https://nodejs.org/en/
