@@ -11,10 +11,10 @@
     "http"
   ],
   "paths": {
-    "/requirement/{id}": {
+    "/requirements/{id}": {
       "get": {
         "tags": [
-          "Requirement"
+          "Requirements"
         ],
         "summary": "Get a requirement",
         "produces": [
@@ -46,7 +46,7 @@
       },
       "put": {
         "tags": [
-          "Requirement"
+          "Requirements"
         ],
         "summary": "Update or create a requirement",
         "consumes": [
@@ -86,7 +86,7 @@
       },
       "delete": {
         "tags": [
-          "Requirement"
+          "Requirements"
         ],
         "summary": "Delete a requirement",
         "description": "Note - A requirement deletion will not remove the reqiurement from the database. Instead, all data is removed, and the history is updated with the removal and corresponding log information.\n",
@@ -119,7 +119,7 @@
         }
       }
     },
-    "/requirement/history/{id}": {
+    "/requirements/history/{id}": {
       "get": {
         "tags": [
           "History"
@@ -153,7 +153,7 @@
         }
       }
     },
-    "/requirement/history/{id}/{version}": {
+    "/requirements/history/{id}/{version}": {
       "get": {
         "tags": [
           "History"
@@ -194,7 +194,7 @@
         }
       }
     },
-    "/requirement/history/{id}/{version}/log": {
+    "/requirements/history/{id}/{version}/log": {
       "put": {
         "tags": [
           "History"

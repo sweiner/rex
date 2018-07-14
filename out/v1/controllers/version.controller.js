@@ -26,7 +26,7 @@ const router = express_1.Router();
 // Attach controllers to the application
 router.use('/', _1.WelcomeController);
 router.use('/api-docs', swagger.serve, swagger.setup(api_doc, options));
-router.use('/requirement', _1.RequirementsController);
+router.use('/requirements', _1.RequirementsController);
 router.use('/history', _1.HistoryController);
 // Export the express.Router() instance to be used by server.ts
 exports.Version1Controller = router;

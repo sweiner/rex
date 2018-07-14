@@ -36,7 +36,7 @@ describe('Requirement Robustness', () => {
     test('Request a non-existing requirement', async () => {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             json: true
         };
 
@@ -53,7 +53,7 @@ describe('Requirement Robustness', () => {
     test('Create a requirement without data', async () => {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 name: 'Test Requirement'
             },
@@ -73,7 +73,7 @@ describe('Requirement Robustness', () => {
     test('Create a requirement with malformed data field', async () => {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: 'This should be an object'
             },
@@ -93,7 +93,7 @@ describe('Requirement Robustness', () => {
     test('Delete a requirement that does not exist', async () => {
         const options = {
             method: 'DELETE',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             json: true
         };
 
@@ -112,7 +112,7 @@ describe('Test Data Field Limitations', () => {
     test('Create a requirement with a \'.\' in one of the data fields (MongoDB Limitation)', async () => {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 'data': {
                     'description': 'This is now a different requirement',
@@ -138,7 +138,7 @@ describe('Test Data Field Limitations', () => {
     test('Create a requirement with a \'$\' in one of the data fields (MongoDB Limitation)', async () => {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 'data': {
                     '$bill': 'This is a bad field',
@@ -162,7 +162,7 @@ describe('Requirement Creation', () => {
     test('Create a basic requirement', async () => {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: {
                     name: 'It doesnt matter what my name is',
@@ -180,7 +180,7 @@ describe('Requirement Creation', () => {
     test('Verify requirement was created successfully', async () => {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -196,7 +196,7 @@ describe('Requirement Editing', () => {
     test('Verify we can edit an already existing requirement', async () => {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: {
                     description: 'This is now a different requirement',
@@ -216,7 +216,7 @@ describe('Requirement Editing', () => {
     test('Verify the edit was successful', async () => {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -236,7 +236,7 @@ describe('Requirement Editing', () => {
     test('Test a duplicate edit', async () => {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: {
                     description: 'This is now a different requirement',
@@ -256,7 +256,7 @@ describe('Requirement Editing', () => {
     test('Verify the edit was ignored', async () => {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -278,7 +278,7 @@ describe('Requirement Deletion', () => {
     test('Verify we can delete an existing requirement', async () => {
         const options = {
             method: 'DELETE',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -290,7 +290,7 @@ describe('Requirement Deletion', () => {
     test('Verify requirement was deleted successfully', async () => {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -303,7 +303,7 @@ describe('Requirement Deletion', () => {
     test('Verify we cannot delete a requirement multiple times', async () => {
         const options = {
             method: 'DELETE',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };

@@ -49,7 +49,7 @@ describe('Requirement Robustness', () => {
     test('Request a non-existing requirement', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             json: true
         };
         try {
@@ -64,7 +64,7 @@ describe('Requirement Robustness', () => {
     test('Create a requirement without data', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 name: 'Test Requirement'
             },
@@ -82,7 +82,7 @@ describe('Requirement Robustness', () => {
     test('Create a requirement with malformed data field', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: 'This should be an object'
             },
@@ -100,7 +100,7 @@ describe('Requirement Robustness', () => {
     test('Delete a requirement that does not exist', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'DELETE',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             json: true
         };
         try {
@@ -117,7 +117,7 @@ describe('Test Data Field Limitations', () => {
     test('Create a requirement with a \'.\' in one of the data fields (MongoDB Limitation)', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 'data': {
                     'description': 'This is now a different requirement',
@@ -141,7 +141,7 @@ describe('Test Data Field Limitations', () => {
     test('Create a requirement with a \'$\' in one of the data fields (MongoDB Limitation)', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 'data': {
                     '$bill': 'This is a bad field',
@@ -163,7 +163,7 @@ describe('Requirement Creation', () => {
     test('Create a basic requirement', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: {
                     name: 'It doesnt matter what my name is',
@@ -179,7 +179,7 @@ describe('Requirement Creation', () => {
     test('Verify requirement was created successfully', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -193,7 +193,7 @@ describe('Requirement Editing', () => {
     test('Verify we can edit an already existing requirement', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: {
                     description: 'This is now a different requirement',
@@ -211,7 +211,7 @@ describe('Requirement Editing', () => {
     test('Verify the edit was successful', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -228,7 +228,7 @@ describe('Requirement Editing', () => {
     test('Test a duplicate edit', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'PUT',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             body: {
                 data: {
                     description: 'This is now a different requirement',
@@ -246,7 +246,7 @@ describe('Requirement Editing', () => {
     test('Verify the edit was ignored', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -265,7 +265,7 @@ describe('Requirement Deletion', () => {
     test('Verify we can delete an existing requirement', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'DELETE',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -275,7 +275,7 @@ describe('Requirement Deletion', () => {
     test('Verify requirement was deleted successfully', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'GET',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
@@ -286,7 +286,7 @@ describe('Requirement Deletion', () => {
     test('Verify we cannot delete a requirement multiple times', () => __awaiter(this, void 0, void 0, function* () {
         const options = {
             method: 'DELETE',
-            uri: server_location + '/requirement/REQ001',
+            uri: server_location + '/requirements/REQ001',
             resolveWithFullResponse: true,
             json: true
         };
