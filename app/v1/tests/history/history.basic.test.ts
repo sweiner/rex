@@ -8,6 +8,7 @@ import * as HttpStatus from 'http-status-codes';
 
 import { startServer, stopServer } from '../../../server';
 import MongodbMemoryServer from 'mongodb-memory-server';
+import { AsyncResource } from 'async_hooks';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -262,6 +263,26 @@ describe('History Robustness', () => {
         expect(get_response.body).toBeInstanceOf(Array);
         expect(get_response.body).toHaveLength(2);
         expect(get_response.body.log).toBeUndefined;
+    });
+
+    test('Verify a log edit is rejected on a non-existing requirement', async () => {
+        const put_options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/history/not_here/0/log',
+            body: {
+                log: 'This log is not here'
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        try {
+            const put_response = await request.put(put_options);
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.NOT_FOUND);
+            expect(err.response.body).toHaveProperty('message');
+        }
     });
 });
 
@@ -551,5 +572,30 @@ describe('History log edits', () => {
         expect(get_response.statusCode).toBe(HttpStatus.OK);
         expect(get_response.body[0].log).toBe('This is the new log');
 
+    });
+
+    test('Verify we can edit an existing log', async() => {
+        const log_put_opts = {
+            method: 'PUT',
+            uri: server_location + '/requirements/history/no_log/0/log',
+            body: {
+                log: 'This is the updated log'
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        const get_options = {
+            method: 'GET',
+            uri: server_location + '/requirements/history/no_log',
+            resolveWithFullResponse: true,
+            json: true
+        };
+
+        const put_response = await request.put(log_put_opts);
+        const get_response = await request.get(get_options);
+
+        expect(get_response.statusCode).toBe(HttpStatus.OK);
+        expect(get_response.body[0].log).toBe('This is the updated log');
     });
 });
