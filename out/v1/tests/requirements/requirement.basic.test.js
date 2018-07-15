@@ -29,7 +29,6 @@ const mongodb_memory_server_1 = __importDefault(require("mongodb-memory-server")
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 const server_location = 'http://localhost:3000';
 let mongod = null;
-const dbURI = 'mongodb://localhost/test';
 beforeAll(() => __awaiter(this, void 0, void 0, function* () {
     const options = {
         binary: {
@@ -37,22 +36,11 @@ beforeAll(() => __awaiter(this, void 0, void 0, function* () {
         }
     };
     mongod = new mongodb_memory_server_1.default(options);
-    try {
-        const uri = yield mongod.getConnectionString();
-        yield server_1.startServer(uri);
-    }
-    catch (err) {
-        yield server_1.stopServer();
-        throw err;
-    }
+    const uri = yield mongod.getConnectionString();
+    yield server_1.startServer(uri);
 }));
 afterAll(() => __awaiter(this, void 0, void 0, function* () {
-    try {
-        const debug = yield server_1.stopServer();
-    }
-    catch (_a) {
-        throw new Error('Could not stop server');
-    }
+    yield server_1.stopServer();
     if (mongod) {
         yield mongod.stop();
     }

@@ -97,7 +97,7 @@ function stopServer() {
         // Set up a timer
         const server_close_timeout = promise_timeout_1.timeout(server_close, 5000)
             .then(() => {
-            // All connections to HTTP server closed, resolve the promise
+            // All connections to http server closed, resolve the promise
             return Promise.resolve();
         })
             .catch((err) => {

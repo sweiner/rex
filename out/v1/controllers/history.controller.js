@@ -31,7 +31,7 @@ router.get('/:name', (req, res, next) => {
     query.exec();
     query.then((requirement) => {
         if (requirement === null) {
-            throw http_errors_1.default(HttpStatus.BAD_REQUEST, name + ' does not exist!');
+            throw http_errors_1.default(HttpStatus.NOT_FOUND, name + ' does not exist!');
         }
         return requirement;
     })
