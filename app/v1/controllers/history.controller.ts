@@ -49,10 +49,10 @@ router.get('/:name/:version', (req: Request, res: Response, next: (...args: any[
 
     query.then((requirement) => {
         if (!requirement) {
-            throw HttpError(HttpStatus.BAD_REQUEST, 'Requirement does not exist!');
+            throw HttpError(HttpStatus.NOT_FOUND, 'Requirement does not exist!');
         }
         else if (version >= requirement.history!.length) {
-            throw HttpError(HttpStatus.BAD_REQUEST, 'Version ' + version.toString() + ' of ' + name + ' does not exist!');
+            throw HttpError(HttpStatus.NOT_FOUND, 'Version ' + version.toString() + ' of ' + name + ' does not exist!');
         }
 
         const reconstructed_data: IRequirementModel = requirement;
@@ -79,7 +79,7 @@ router.put('/:name/:version/log', jsonParser, (req: Request, res: Response, next
 
     query.then((requirement) => {
         if (!requirement) {
-            throw HttpError (HttpStatus.BAD_REQUEST, name + ' does not exist!');
+            throw HttpError (HttpStatus.NOT_FOUND, name + ' does not exist!');
         }
         else if (version >= requirement.history!.length) {
             throw HttpError(HttpStatus.BAD_REQUEST, 'Version ' + version.toString() + ' of ' + name + ' does not exist!');
@@ -90,7 +90,9 @@ router.put('/:name/:version/log', jsonParser, (req: Request, res: Response, next
     })
     .then((history) => {
         history!.log = req.body.log;
-        history!.save();
+        return history!.save();
+    })
+    .then(() => {
         res.sendStatus(HttpStatus.OK);
     })
     .catch(next);

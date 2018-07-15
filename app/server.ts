@@ -5,7 +5,7 @@
 
 // Import everything from express and assign it to the express variable
 import express from 'express';
-import mongoose from 'mongoose';
+import mongoose, { ValidationError } from 'mongoose';
 import * as http from 'http';
 import * as db from './db';
 

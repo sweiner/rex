@@ -51,10 +51,10 @@ router.get('/:name/:version', (req, res, next) => {
     const query = requirement_1.Requirement.findOne(conditions).populate({ path: 'history', model: 'History', select: 'version patch log -_id' }).exec();
     query.then((requirement) => {
         if (!requirement) {
-            throw http_errors_1.default(HttpStatus.BAD_REQUEST, 'Requirement does not exist!');
+            throw http_errors_1.default(HttpStatus.NOT_FOUND, 'Requirement does not exist!');
         }
         else if (version >= requirement.history.length) {
-            throw http_errors_1.default(HttpStatus.BAD_REQUEST, 'Version ' + version.toString() + ' of ' + name + ' does not exist!');
+            throw http_errors_1.default(HttpStatus.NOT_FOUND, 'Version ' + version.toString() + ' of ' + name + ' does not exist!');
         }
         const reconstructed_data = requirement;
         for (let i = (requirement.history.length - 1); i > version; i--) {
@@ -75,7 +75,7 @@ router.put('/:name/:version/log', jsonParser, (req, res, next) => {
     const query = requirement_1.Requirement.findOne(conditions).exec();
     query.then((requirement) => {
         if (!requirement) {
-            throw http_errors_1.default(HttpStatus.BAD_REQUEST, name + ' does not exist!');
+            throw http_errors_1.default(HttpStatus.NOT_FOUND, name + ' does not exist!');
         }
         else if (version >= requirement.history.length) {
             throw http_errors_1.default(HttpStatus.BAD_REQUEST, 'Version ' + version.toString() + ' of ' + name + ' does not exist!');
@@ -85,7 +85,9 @@ router.put('/:name/:version/log', jsonParser, (req, res, next) => {
     })
         .then((history) => {
         history.log = req.body.log;
-        history.save();
+        return history.save();
+    })
+        .then(() => {
         res.sendStatus(HttpStatus.OK);
     })
         .catch(next);
