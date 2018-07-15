@@ -28,6 +28,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const db = __importStar(require("./db"));
 const version_controller_1 = require("./v1/controllers/version.controller");
 const http_errors_1 = require("http-errors");
+const promise_timeout_1 = require("promise-timeout");
 const HttpStatus = __importStar(require("http-status-codes"));
 // Local functions
 function normalizePort(val) {
@@ -88,25 +89,40 @@ function stopServer() {
         // console.log('Received kill signal, shutting down gracefully');
         // console.log('Disconnecting from MongoDB...');
         // Disconnect from MongoDB.
-        // Will create an async task, we do not need to wait for it though
-        // Since the server will remain open until it completes.
-        db.disconnect();
+        const mongo_close = db.disconnect();
         // Close the server
-        server.close(() => {
-            // console.log('Closed out remaining connections');
-            if (kill_timeout) {
-                clearTimeout(kill_timeout);
-            }
-            if (destroy_timeout) {
-                clearTimeout(destroy_timeout);
-            }
-        });
-        const kill_timeout = setTimeout(() => {
-            throw new Error('Could not close connections in time, forcefully shutting down');
-        }, 10000);
+        const server_close = new Promise(resolve => server.close(resolve));
+        // Terminate all the connections
         connections.forEach(curr => curr.end());
-        const destroy_timeout = setTimeout(() => connections.forEach(curr => curr.destroy()), 5000);
+        // Set up a timer
+        const server_close_timeout = promise_timeout_1.timeout(server_close, 5000)
+            .then(() => {
+            // All connections to HTTP server closed, resolve the promise
+            return Promise.resolve();
+        })
+            .catch((err) => {
+            // Timeout occured, try destroying the connections
+            if (err instanceof promise_timeout_1.TimeoutError) {
+                connections.forEach(curr => curr.destroy());
+                return promise_timeout_1.timeout(server_close, 5000);
+            }
+            return Promise.reject(err);
+        })
+            .then(() => {
+            // All connections closed, resolve the promise
+            return Promise.resolve();
+        })
+            .catch((err) => {
+            // Server still not closed, force termination
+            if (err instanceof promise_timeout_1.TimeoutError) {
+                return Promise.reject('Could not shutdown server gracefully.  Terminating');
+            }
+            return Promise.reject(err);
+        });
+        // All connections closed (Mongo, HttpSever)
+        return Promise.all([mongo_close, server_close_timeout]);
     }
+    return Promise.resolve();
 }
 exports.stopServer = stopServer;
 // Handle Abrupt server shutdowns

@@ -13,7 +13,6 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const server_location = 'http://localhost:3000';
 let mongod: MongodbMemoryServer | null = null;
-const dbURI = 'mongodb://localhost/test';
 
 beforeAll( async () => {
     const options: any = {
@@ -22,13 +21,14 @@ beforeAll( async () => {
         }
     };
     mongod = new MongodbMemoryServer(options);
+    const uri = await mongod.getConnectionString();
+    await startServer(uri);
+});
 
-    try {
-        const uri = await mongod.getConnectionString();
-        await startServer(uri);
-    }
-    catch (err) {
-        stopServer();
+afterAll(async () => {
+    await stopServer();
+    if (mongod) {
+        await mongod.stop();
     }
 });
 
@@ -317,11 +317,4 @@ describe('Requirement Deletion', () => {
             expect(err.response.body).toHaveProperty('message');
         }
     });
-});
-
-afterAll(async() => {
-    await stopServer();
-    if (mongod) {
-        await mongod.stop();
-    }
 });

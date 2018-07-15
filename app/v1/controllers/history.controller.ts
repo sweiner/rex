@@ -26,7 +26,7 @@ router.get('/:name', (req: Request, res: Response, next: (...args: any[]) => voi
 
     query.then((requirement) => {
         if (requirement === null) {
-            throw HttpError(HttpStatus.BAD_REQUEST, name + ' does not exist!');
+            throw HttpError(HttpStatus.NOT_FOUND, name + ' does not exist!');
         }
         return requirement;
     })

@@ -42,7 +42,19 @@ beforeAll(() => __awaiter(this, void 0, void 0, function* () {
         yield server_1.startServer(uri);
     }
     catch (err) {
-        server_1.stopServer();
+        yield server_1.stopServer();
+        throw err;
+    }
+}));
+afterAll(() => __awaiter(this, void 0, void 0, function* () {
+    try {
+        const debug = yield server_1.stopServer();
+    }
+    catch (_a) {
+        throw new Error('Could not stop server');
+    }
+    if (mongod) {
+        yield mongod.stop();
     }
 }));
 describe('Requirement Robustness', () => {
@@ -300,10 +312,4 @@ describe('Requirement Deletion', () => {
         }
     }));
 });
-afterAll(() => __awaiter(this, void 0, void 0, function* () {
-    yield server_1.stopServer();
-    if (mongod) {
-        yield mongod.stop();
-    }
-}));
 //# sourceMappingURL=requirement.basic.test.js.map
