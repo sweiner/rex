@@ -249,6 +249,77 @@ describe('History Robustness', () => {
         expect(get_response.body).toHaveLength(2);
         expect(get_response.body.log).toBeUndefined;
     }));
+    test('Verify log update with missing body is rejected', () => __awaiter(this, void 0, void 0, function* () {
+        const put_options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/history/Five/0/log',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const get_options = {
+            method: 'GET',
+            uri: server_location + '/requirements/history/Five',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        try {
+            const put_response = yield request.put(put_options);
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body).toHaveProperty('message');
+        }
+        const get_response = yield request.get(get_options);
+        expect(get_response.body).toBeInstanceOf(Array);
+        expect(get_response.body).toHaveLength(2);
+        expect(get_response.body.log).toBeUndefined;
+    }));
+    test('Verify log update on an invalid version is rejected', () => __awaiter(this, void 0, void 0, function* () {
+        const put_options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/history/Five/99/log',
+            body: {
+                log: 'This is a bad version'
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const get_options = {
+            method: 'GET',
+            uri: server_location + '/requirements/history/Five',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        try {
+            const put_response = yield request.put(put_options);
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.BAD_REQUEST);
+            expect(err.response.body).toHaveProperty('message');
+        }
+        const get_response = yield request.get(get_options);
+        expect(get_response.body).toBeInstanceOf(Array);
+        expect(get_response.body).toHaveLength(2);
+        expect(get_response.body.log).toBeUndefined;
+    }));
+    test('Verify a log edit is rejected on a non-existing requirement', () => __awaiter(this, void 0, void 0, function* () {
+        const put_options = {
+            method: 'PUT',
+            uri: server_location + '/requirements/history/not_here/0/log',
+            body: {
+                log: 'This log is not here'
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+        try {
+            const put_response = yield request.put(put_options);
+        }
+        catch (err) {
+            expect(err.response.statusCode).toBe(HttpStatus.NOT_FOUND);
+            expect(err.response.body).toHaveProperty('message');
+        }
+    }));
 });
 describe('History Browsing', () => {
     test('Verify history version starts at zero for a new requirement', () => __awaiter(this, void 0, void 0, function* () {
@@ -493,6 +564,27 @@ describe('History log edits', () => {
         get_response = yield request.get(get_options);
         expect(get_response.statusCode).toBe(HttpStatus.OK);
         expect(get_response.body[0].log).toBe('This is the new log');
+    }));
+    test('Verify we can edit an existing log', () => __awaiter(this, void 0, void 0, function* () {
+        const log_put_opts = {
+            method: 'PUT',
+            uri: server_location + '/requirements/history/no_log/0/log',
+            body: {
+                log: 'This is the updated log'
+            },
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const get_options = {
+            method: 'GET',
+            uri: server_location + '/requirements/history/no_log',
+            resolveWithFullResponse: true,
+            json: true
+        };
+        const put_response = yield request.put(log_put_opts);
+        const get_response = yield request.get(get_options);
+        expect(get_response.statusCode).toBe(HttpStatus.OK);
+        expect(get_response.body[0].log).toBe('This is the updated log');
     }));
 });
 //# sourceMappingURL=history.basic.test.js.map
